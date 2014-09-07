@@ -1,7 +1,7 @@
 nora.js
 =======
 
-Non-Regression Automation with Javascript
+SOAP Web Services Non-Regression Automation with Javascript
 
 ## Depencencies
 npm
