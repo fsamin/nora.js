@@ -1,0 +1,7 @@
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+    <Body>
+        <GetCityForecastByZIP xmlns="http://ws.cdyne.com/WeatherWS/">
+            <ZIP>${zipcode}</ZIP>
+        </GetCityForecastByZIP>
+    </Body>
+</Envelope>

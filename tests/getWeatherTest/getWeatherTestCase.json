@@ -1,0 +1,51 @@
+[
+	{
+		"stepName" :	"Load Properties",
+		"stepID" : "1",
+		"stepAction" : "loadProperty",
+		"stepOptions" : {
+			"filename" : "zipcode.json"
+			}
+	},{
+		"stepName" : "Compute getWeather Request",
+		"stepID" : "2",
+		"stepAction" : "makeRequest",
+		"stepOptions" : {
+			"requestID" : "getWeatherRequest",
+			"requestTemplate" : "getWeatherTemplate.xml"
+			}
+	},{
+		"stepName" : "Send GetWeather Request",
+		"stepID" : "3",
+		"stepAction" : "sendRequest",
+		"stepOptions" : {
+			"requestID" : "getWeatherRequest",
+			"url" : "http://wsf.cdyne.com/WeatherWS/Weather.asmx",
+			"SOAPAction": "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP",
+			"responseID" : "getWeatherResponse"
+			}
+	}, {
+		"stepName" : "Check GetWeather Response",
+		"stepID" : "4",
+		"stepAction" : "checkXML",
+		"stepOptions" : {
+			"xmlID" : "getWeatherResponse",
+			"asserts" : [
+				{
+					"type" : "contains",
+					"value" : "City Found"
+				},
+				{
+					"type" : "notContains",
+					"value" : "Error"
+				},
+				{
+					"type" : "xpath",
+					"xpath" : "//weather:GetCityForecastByZIPResponse/weather:GetCityForecastByZIPResult/weather:WeatherStationCity",
+					"namespaces": {"weather" : "http://ws.cdyne.com/WeatherWS/"},
+					"match" : "Houston"
+				}
+			]
+		}
+	}
+]
