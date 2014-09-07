@@ -5,6 +5,7 @@ Non-Regression Automation with Javascript
 
 ## Depencencies
 npm
+
 node.js
 
 ## Install
