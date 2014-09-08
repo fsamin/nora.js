@@ -23,8 +23,6 @@ console.info("Loading %j", program.testcase);
 var testcase = JSON.parse(fs.readFileSync(program.testcase, 'utf8'));
 
 var properties = [];
-var requests = [];
-var responses = [];
 var result = [];
 
 testcase.forEach(doTestStep);
@@ -48,19 +46,20 @@ function doTestStep(teststep, index, testcase) {
   var status;
   switch(teststep.stepAction) {
     case "loadProperty" :
-      status = doStepLoadProperties(teststep, properties);
+      status = doStepLoadProperties(teststep);
       break;
     case "makeRequest" :
-      status = doStepMakeRequest(teststep, properties);
+      status = doStepMakeRequest(teststep);
       break;
     case "sendRequest" :
-      status = doStepSendRequest(teststep, properties);
+      status = doStepSendRequest(teststep);
       break;
     case "checkXML" :
-      status = doStepCheckXML(teststep, properties);
+      status = doStepCheckXML(teststep);
       break;
     default:
       console.error("* Unrecognize stepAction %j", teststep.stepAction);
+      console.dir(teststep);
       status = "failed";
   }
   result.push({id : index, step : teststep.stepName, result: status});
@@ -69,8 +68,16 @@ function doTestStep(teststep, index, testcase) {
 /**
   Traitement chargement de propriété
   */
-function doStepLoadProperties(teststep, properties) {
+function doStepLoadProperties(teststep) {
   console.log("* " + teststep.stepID  + " - " + teststep.stepName);
+    
+  if (teststep.stepOptions.filename == null
+    ) {
+    console.error("Error parsing " + teststep.stepID + " options.\n filename, is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+    console.dir(teststep);
+    throw new Error("Malformated loadProperty test step");
+  }
+
   var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + teststep.stepOptions.filename;
   console.log("  * Loading properties " + filename);
 
@@ -93,13 +100,22 @@ function doStepLoadProperties(teststep, properties) {
 /**
   Traitement de préparation de requête
   */
-function doStepMakeRequest(teststep, properties) {
+function doStepMakeRequest(teststep) {
   console.log("* " + teststep.stepID  + " - " + teststep.stepName);
+  
+  if (teststep.stepOptions.requestID == null || 
+    teststep.stepOptions.requestTemplate == null 
+    ) {
+    console.error("Error parsing " + teststep.stepID + " options.\n requestID, requestTemplate are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+    console.dir(teststep);
+    throw new Error("Malformated makeRequest test step");
+  }
+
   var template = path.join(path.join(__dirname, program.testcase), "..") + path.sep + teststep.stepOptions.requestTemplate;
   console.log("  * Loading Request Template " + template);
   try {
     var request = fs.readFileSync(template, "utf8");
-    request = setXMLProperties(request, properties);
+    request = setXMLProperties(request);
     console.log("  * Saving Request " + teststep.stepOptions.requestID + ".xml");
     fs.writeFileSync(runDir  + path.sep + teststep.stepOptions.requestID+".xml", pd.xml(request), "utf8", function(err) {
         if(err) {
@@ -117,8 +133,19 @@ function doStepMakeRequest(teststep, properties) {
 /**
   Traitement d'envoi de la requête synchrone et de sauvegarde de la réponse
   */
-function doStepSendRequest(teststep, properties) {
+function doStepSendRequest(teststep) {
   console.log("* " + teststep.stepID  + " - " + teststep.stepName);
+
+  if (teststep.stepOptions.requestID == null || 
+    teststep.stepOptions.url == null ||
+    teststep.stepOptions.SOAPAction == null ||
+    teststep.stepOptions.responseID == null
+    ) {
+    console.error("Error parsing " + teststep.stepID + " options.\n requestID, url, SOAPAction and responseID are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+    console.dir(teststep);
+    throw new Error("Malformated sendRequest test step");
+  }
+
   var requestFilePath = runDir + path.sep + teststep.stepOptions.requestID + ".xml";
   var requestFile = fs.readFileSync(requestFilePath, "utf8");
 
@@ -142,9 +169,6 @@ function doStepSendRequest(teststep, properties) {
     console.error();
     console.dir(response);
     console.dir(responseFile)
-    //if (teststep.stepOptions.stopOnError) {
-    //  return "STOP";
-    //}
     return "Failed";
   } else {
     var responseFilePath = runDir + path.sep + teststep.stepOptions.responseID + ".xml";
@@ -162,31 +186,66 @@ function doStepSendRequest(teststep, properties) {
 /**
   Traitement de vérification de trames
   */
-function doStepCheckXML(teststep, properties) {
+function doStepCheckXML(teststep) {
   console.log("* " + teststep.stepID  + " - " + teststep.stepName);
+  
+  if (teststep.stepOptions.xmlID == null || 
+    teststep.stepOptions.asserts == null
+    ) {
+    console.error("Error parsing " + teststep.stepID + " options.\n xmlID, asserts are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+    console.dir(teststep);
+    throw new Error("Malformated sendRequest test step");
+  }
+
   var xmlPath = runDir + path.sep + teststep.stepOptions.xmlID + ".xml";
   var xmlFile = fs.readFileSync(xmlPath, "utf8");
   var result = true;
 
   teststep.stepOptions.asserts.forEach(function(myAssert){
+
+    if (myAssert.type == null) {
+      console.error("Error parsing assertion.\n type is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+      console.dir(myAssert);
+      throw new Error("Malformated assertion test step");
+    }
+
     switch(myAssert.type) {
       case "contains" :
+        if (myAssert.value == null) {
+          console.error("Error parsing assertion.\n value is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+          console.dir(myAssert);
+          throw new Error("Malformated assertion test step");
+        }
+
         var tmpResult = (xmlFile.indexOf(myAssert.value) > -1);
         result  = result && tmpResult;
         console.log("  * " + myAssert.type  + " - " + myAssert.value + " : " + tmpResult);
         break;
       case "notContains" :
+        if (myAssert.value == null) {
+          console.error("Error parsing assertion.\n value is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+          console.dir(myAssert);
+          throw new Error("Malformated assertion test step");
+        }
+
         var tmpResult = (xmlFile.indexOf(myAssert.value) == -1);
         result  = result && tmpResult;
         console.log("  * " + myAssert.type  + " - " + myAssert.value + " : " + tmpResult);
         break;
       case "xpath" :
+        if (myAssert.xpath == null || myAssert.match == null) {
+          console.error("Error parsing assertion.\n xpath and match are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+          console.dir(myAssert);
+          throw new Error("Malformated assertion test step");
+        }
+
         var tmpResult = false;
         try {
           var doc = new dom().parseFromString(xmlFile);
           var select = xpath.useNamespaces(myAssert.namespaces);
           var nodes = select(myAssert.xpath, doc);
-          if (myAssert.match ==  nodes[0].firstChild.nodeValue) {
+          var match = setXMLProperties(myAssert.match, myAssert.matchNamespaces);
+          if (match ==  nodes[0].firstChild.nodeValue) {
             tmpResult = true;
           } 
         } catch (err) {
@@ -194,7 +253,7 @@ function doStepCheckXML(teststep, properties) {
           tmpResult = false;
         }
         result  = result && tmpResult;
-        console.log("  * " + myAssert.type  + " - " + myAssert.xpath + " - " + myAssert.match + " : " + tmpResult);
+        console.log("  * " + myAssert.type  + " - " + myAssert.match + " : " + tmpResult);
         break;
       default:
         console.error("* Unrecognize assert type %j", myAssert.type);
@@ -212,14 +271,37 @@ function doStepCheckXML(teststep, properties) {
   Fonctions utilitaires
   */
 
-function setXMLProperties(xmlStream, properties) {
+function setXMLProperties(xmlStream, namespaces) {
   var pattern = new RegExp(/\$\{.*\}/);
   var arrMatches = xmlStream.match(pattern);
 
   if (arrMatches == null) {
-    console.log("    * no property found ");
+    //console.log("    * no property found ");
     return xmlStream;
-  }
+  } 
+  
+  //On va traiter les propriétés relatives à des références XPATH
+  var xpathPattern = new RegExp(/\$\{.*:.*\}/);
+  var arrXpathMatches = xmlStream.match(xpathPattern);
+
+  if (arrXpathMatches != null) {
+    arrXpathMatches.forEach(function(match){
+      var xmlID = match.trim().replace(/\$\{/, "").replace(/:.*\}/, "");
+      console.log("    * Found reference to " + xmlID + ", loading...");
+      var xmlFilePath = runDir + path.sep + xmlID + ".xml";
+      var xmlFile = fs.readFileSync(xmlFilePath, "utf8");
+      var xpathStr = match.trim().replace(/\$\{(.*?):/, "").replace(/\}/, "");
+      console.log("    * Found xpath " + xpathStr + ", loading...");
+      var doc = new dom().parseFromString(xmlFile);
+      var select = xpath.useNamespaces(namespaces);
+      var nodes = select(xpathStr, doc);
+      var matchingValue = nodes[0].firstChild.nodeValue;
+      console.log("    * Found matching values : " + matchingValue);
+      console.log("    * Replacing " + match + " by " + matchingValue);
+      xmlStream = xmlStream.replace(match, matchingValue);  
+    });
+  } 
+
 
   arrMatches.forEach(function(match){
     var propertyName = match.trim().replace(/\$\{/, "").replace(/\}/, "");

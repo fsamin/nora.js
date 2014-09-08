@@ -44,6 +44,13 @@
 					"xpath" : "//weather:GetCityForecastByZIPResponse/weather:GetCityForecastByZIPResult/weather:WeatherStationCity",
 					"namespaces": {"weather" : "http://ws.cdyne.com/WeatherWS/"},
 					"match" : "Houston"
+				},
+				{
+					"type" : "xpath",
+					"xpath" : "//weather:GetCityForecastByZIPResponse/weather:GetCityForecastByZIPResult/weather:WeatherStationCity",
+					"namespaces": {"weather" : "http://ws.cdyne.com/WeatherWS/"},
+					"match" : "${getWeatherResponse://weather:GetCityForecastByZIPResponse/weather:GetCityForecastByZIPResult/weather:WeatherStationCity}",
+					"matchNamespaces": {"weather" : "http://ws.cdyne.com/WeatherWS/"}
 				}
 			]
 		}
