@@ -4,7 +4,7 @@
 		"stepID" : "1",
 		"stepAction" : "loadProperty",
 		"stepOptions" : {
-			"filename" : "zipcode.json"
+			"generator" : "zipcode.js"
 			}
 	},{
 		"stepName" : "Compute getWeather Request",

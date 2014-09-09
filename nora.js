@@ -72,28 +72,39 @@ function doStepLoadProperties(teststep) {
   console.log("* " + teststep.stepID  + " - " + teststep.stepName);
     
   if (teststep.stepOptions.filename == null
-    ) {
-    console.error("Error parsing " + teststep.stepID + " options.\n filename, is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+    && teststep.stepOptions.generator == null) {
+    console.error("Error parsing " + teststep.stepID + " options.\n filename or generator, is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
     console.dir(teststep);
     throw new Error("Malformated loadProperty test step");
   }
 
-  var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + teststep.stepOptions.filename;
-  console.log("  * Loading properties " + filename);
+  if (teststep.stepOptions.filename != null) {
+    var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + teststep.stepOptions.filename;
+    console.log("  * Loading properties " + filename);
 
-  try {
-    if (!fs.existsSync(filename)) {
-      console.error("  * %j is not a file", filename);
-      throw new Error('%j is not a file', filename)
+    try {
+      if (!fs.existsSync(filename)) {
+        console.error("  * %j is not a file", filename);
+        throw new Error('%j is not a file', filename)
+      }
+      JSON.parse(fs.readFileSync(filename, 'utf8'))
+        .forEach(function(value) {
+          properties.push(value);
+      });
+    } catch (err) {
+      console.error("  * Error while parsing %j", filename);
+      throw err
     }
-    JSON.parse(fs.readFileSync(filename, 'utf8'))
-      .forEach(function(value) {
-        properties.push(value);
-    });
-  } catch (err) {
-    console.error("  * Error while parsing %j", filename);
-    throw err
+  } else if (teststep.stepOptions.generator != null) {
+    var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + teststep.stepOptions.generator;
+    console.log("  * Loading properties generator" + filename);
+    var generator = require(filename, 'utf8');
+    generator().forEach(function(value) {
+          properties.push(value);
+      });
+
   }
+  //console.dir(properties);
   return "Passed";
 }
 
