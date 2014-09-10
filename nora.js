@@ -91,7 +91,7 @@ function doStepLoadProperties(teststep) {
     try {
       if (!fs.existsSync(filename)) {
         console.error("  * %j is not a file", filename);
-        throw new Error('%j is not a file', filename)
+        throw new Error('this is not a file')
       }
       JSON.parse(fs.readFileSync(filename, 'utf8'))
         .forEach(function(value) {
@@ -104,13 +104,16 @@ function doStepLoadProperties(teststep) {
   } else if (teststep.stepOptions.generator != null) {
     var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + teststep.stepOptions.generator;
     console.log("  * Loading properties generator " + filename);
+    if (!fs.existsSync(filename)) {
+      console.error("  * Cannot find generator %j", filename);
+      throw new Error('Cannot find generator')
+    }
     var generator = require(filename, 'utf8');
     generator().forEach(function(value) {
           properties.push(value);
       });
 
   }
-  //console.dir(properties);
   return "Passed";
 }
 
@@ -154,18 +157,25 @@ function doStepSendRequest(teststep) {
   console.log("* " + teststep.stepID  + " - " + teststep.stepName);
 
   if (teststep.stepOptions.requestID == null || 
+    teststep.stepOptions.protocol == null ||
     teststep.stepOptions.host == null ||
     teststep.stepOptions.port == null ||
     teststep.stepOptions.path == null ||
     teststep.stepOptions.SOAPAction == null ||
     teststep.stepOptions.responseID == null
     ) {
-    console.error("Error parsing " + teststep.stepID + " options.\n requestID, host, SOAPAction and responseID are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+    console.error("Error parsing " + teststep.stepID + " options.\n requestID, protocol, host, port, path and SOAPAction and responseID are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
     console.dir(teststep);
     throw new Error("Malformated sendRequest test step");
   }
 
   var requestFilePath = runDir + path.sep + teststep.stepOptions.requestID + ".xml";
+  
+  if (!fs.existsSync(requestFilePath)) {
+      console.error("  * Cannot find XML %j", requestFilePath);
+      throw new Error('Cannot find XML');
+  }
+
   var requestFile = fs.readFileSync(requestFilePath, "utf8");
 
   var req = httpsync.request({
@@ -188,7 +198,7 @@ function doStepSendRequest(teststep) {
   var responseFile = response.body.toString();
 
   if (response.statusCode != 200) {
-    console.error();
+    console.error("   * Error " + response.statusCode + " send by server. See detail below.");
     console.dir(response);
     console.dir(responseFile)
     return "Failed";
@@ -220,6 +230,12 @@ function doStepCheckXML(teststep) {
   }
 
   var xmlPath = runDir + path.sep + teststep.stepOptions.xmlID + ".xml";
+
+  if (!fs.existsSync(xmlPath)) {
+      console.error("  * Cannot find XML %j", xmlPath);
+      throw new Error('Cannot find XML');
+  }
+
   var xmlFile = fs.readFileSync(xmlPath, "utf8");
   var result = true;
 
@@ -298,7 +314,6 @@ function setXMLProperties(xmlStream, namespaces) {
   var arrMatches = xmlStream.match(pattern);
 
   if (arrMatches == null) {
-    //console.log("    * no property found ");
     return xmlStream;
   } 
   
