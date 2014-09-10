@@ -1,6 +1,12 @@
 var console = require('better-console');
 var request = require('request');
-var httpsync = require('httpsync');
+//var httpsync = require('httpsync');
+var httpsync;
+try {
+  httpsync = require('http-sync');
+} catch (ex) {
+  httpsync = require('http-sync-win');
+}
 var fs = require('fs-extra');
 var path = require('path');
 var program = require('commander');
@@ -97,7 +103,7 @@ function doStepLoadProperties(teststep) {
     }
   } else if (teststep.stepOptions.generator != null) {
     var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + teststep.stepOptions.generator;
-    console.log("  * Loading properties generator" + filename);
+    console.log("  * Loading properties generator " + filename);
     var generator = require(filename, 'utf8');
     generator().forEach(function(value) {
           properties.push(value);
@@ -148,11 +154,13 @@ function doStepSendRequest(teststep) {
   console.log("* " + teststep.stepID  + " - " + teststep.stepName);
 
   if (teststep.stepOptions.requestID == null || 
-    teststep.stepOptions.url == null ||
+    teststep.stepOptions.host == null ||
+    teststep.stepOptions.port == null ||
+    teststep.stepOptions.path == null ||
     teststep.stepOptions.SOAPAction == null ||
     teststep.stepOptions.responseID == null
     ) {
-    console.error("Error parsing " + teststep.stepID + " options.\n requestID, url, SOAPAction and responseID are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+    console.error("Error parsing " + teststep.stepID + " options.\n requestID, host, SOAPAction and responseID are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
     console.dir(teststep);
     throw new Error("Malformated sendRequest test step");
   }
@@ -161,7 +169,10 @@ function doStepSendRequest(teststep) {
   var requestFile = fs.readFileSync(requestFilePath, "utf8");
 
   var req = httpsync.request({
-    url: teststep.stepOptions.url,
+    host: teststep.stepOptions.host,
+    port: teststep.stepOptions.port,
+    path: teststep.stepOptions.path,
+    protocol: teststep.stepOptions.protocol,
     method: "POST",
     useragent: "Nora.js",
     headers: {
@@ -169,12 +180,12 @@ function doStepSendRequest(teststep) {
       'Content-Type' : 'text/xml; charset="utf-8"'
     }
   });
-  console.log("  * Sending request to " + teststep.stepOptions.url);
+  console.log("  * Sending request to " + teststep.stepOptions.protocol + "://" + teststep.stepOptions.host + ":" + teststep.stepOptions.port + teststep.stepOptions.path);
   req.write(requestFile);
   response = req.end();
 
-  console.log("  * HTTP-Status:" + response.statusCode + ", from " + response.ip);
-  var responseFile = response.data.toString();
+  console.log("  * HTTP-Status:" + response.statusCode);
+  var responseFile = response.body.toString();
 
   if (response.statusCode != 200) {
     console.error();

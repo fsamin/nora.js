@@ -20,7 +20,10 @@
 		"stepAction" : "sendRequest",
 		"stepOptions" : {
 			"requestID" : "getWeatherRequest",
-			"url" : "http://wsf.cdyne.com/WeatherWS/Weather.asmx",
+			"protocol" : "http",
+			"host" : "wsf.cdyne.com",
+			"port" : "80",
+			"path": "/WeatherWS/Weather.asmx",
 			"SOAPAction": "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP",
 			"responseID" : "getWeatherResponse"
 			}
