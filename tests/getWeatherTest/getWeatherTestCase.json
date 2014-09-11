@@ -24,9 +24,11 @@
 			"host" : "wsf.cdyne.com",
 			"port" : "80",
 			"path": "/WeatherWS/Weather.asmx",
-			"SOAPAction": "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP",
+			"SOAPAction": "http://ws.cdyne.com/WeatherWS/GetCityForecastByZI",
 			"responseID" : "getWeatherResponse"
-			}
+			},
+		"stepReplayOnFailure" : 5,
+		"stepWaitBeforeReplay" : 5
 	}, {
 		"stepName" : "Check GetWeather Response",
 		"stepID" : "4",

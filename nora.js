@@ -15,6 +15,7 @@ var table = require('easy-table');
 var xpath = require('xpath')
 var dom = require('xmldom').DOMParser;
 var pd = require('pretty-data').pd;
+var sleep = require('sleep');
 
 program
   .version('0.0.1')
@@ -50,23 +51,41 @@ console.log(t.toString());
   */
 function doTestStep(teststep, index, testcase) {
   var status;
-  switch(teststep.stepAction) {
-    case "loadProperty" :
-      status = doStepLoadProperties(teststep);
-      break;
-    case "makeRequest" :
-      status = doStepMakeRequest(teststep);
-      break;
-    case "sendRequest" :
-      status = doStepSendRequest(teststep);
-      break;
-    case "checkXML" :
-      status = doStepCheckXML(teststep);
-      break;
-    default:
-      console.error("* Unrecognize stepAction %j", teststep.stepAction);
-      console.dir(teststep);
-      status = "failed";
+  var nbAttempt = 1;
+  var retry = true;
+  while (status != "passed" && retry) {
+    switch(teststep.stepAction) {
+      case "loadProperty" :
+        status = doStepLoadProperties(teststep);
+        break;
+      case "makeRequest" :
+        status = doStepMakeRequest(teststep);
+        break;
+      case "sendRequest" :
+        status = doStepSendRequest(teststep);
+        break;
+      case "checkXML" :
+        status = doStepCheckXML(teststep);
+        break;
+      default:
+        console.error("* Unrecognize stepAction %j", teststep.stepAction);
+        console.dir(teststep);
+        status = "Failed";
+    }
+    if (status != "Passed" && teststep.stepReplayOnFailure != null) {
+      nbAttempt++;
+      if (nbAttempt <= teststep.stepReplayOnFailure) {
+        console.warn(" * Last step is failed. Retry");
+        if (teststep.stepWaitBeforeReplay != null) {
+          sleep.sleep(teststep.stepWaitBeforeReplay);
+        }
+        retry = true;
+      } else {
+        retry = false;
+      }
+    } else {
+      retry = false;
+    }
   }
   result.push({id : index, step : teststep.stepName, result: status});
 }
@@ -173,7 +192,7 @@ function doStepSendRequest(teststep) {
   
   if (!fs.existsSync(requestFilePath)) {
       console.error("  * Cannot find XML %j", requestFilePath);
-      throw new Error('Cannot find XML');
+      return "Failed";
   }
 
   var requestFile = fs.readFileSync(requestFilePath, "utf8");
@@ -233,7 +252,7 @@ function doStepCheckXML(teststep) {
 
   if (!fs.existsSync(xmlPath)) {
       console.error("  * Cannot find XML %j", xmlPath);
-      throw new Error('Cannot find XML');
+      return "Failed";
   }
 
   var xmlFile = fs.readFileSync(xmlPath, "utf8");
