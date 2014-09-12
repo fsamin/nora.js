@@ -1,0 +1,10 @@
+[
+	{
+		"propertyName" : "host",
+		"propertyValue" : "wsf.cdyne.com"
+	},
+	{
+		"propertyName" : "port",
+		"propertyValue" : 80
+	}
+]

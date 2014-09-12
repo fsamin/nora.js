@@ -3,9 +3,11 @@
 		"stepName" :	"Load Properties",
 		"stepID" : "1",
 		"stepAction" : "loadProperty",
-		"stepOptions" : {
+		"stepOptions" : [{
 			"generator" : "zipcode.js"
-			}
+				}, {
+			"filename" : "getWeather.properties.json"
+				}]	
 	},{
 		"stepName" : "Compute getWeather Request",
 		"stepID" : "2",
@@ -21,10 +23,10 @@
 		"stepOptions" : {
 			"requestID" : "getWeatherRequest",
 			"protocol" : "http",
-			"host" : "wsf.cdyne.com",
-			"port" : "80",
+			"host" : "${host}",
+			"port" : "${port}",
 			"path": "/WeatherWS/Weather.asmx",
-			"SOAPAction": "http://ws.cdyne.com/WeatherWS/GetCityForecastByZI",
+			"SOAPAction": "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP",
 			"responseID" : "getWeatherResponse"
 			},
 		"stepReplayOnFailure" : 5,

@@ -1,6 +1,5 @@
 var console = require('better-console');
 var request = require('request');
-//var httpsync = require('httpsync');
 var httpsync;
 try {
   httpsync = require('http-sync');
@@ -95,44 +94,45 @@ function doTestStep(teststep, index, testcase) {
   */
 function doStepLoadProperties(teststep) {
   console.log("* " + teststep.stepID  + " - " + teststep.stepName);
-    
-  if (teststep.stepOptions.filename == null
-    && teststep.stepOptions.generator == null) {
-    console.error("Error parsing " + teststep.stepID + " options.\n filename or generator, is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
-    console.dir(teststep);
-    throw new Error("Malformated loadProperty test step");
-  }
+  teststep.stepOptions.forEach(function(stepOption){
+    if (stepOption.filename == null
+      && stepOption.generator == null) {
+      console.error("Error parsing " + teststep.stepID + " options.\n filename or generator, is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+      console.dir(teststep);
+      throw new Error("Malformated loadProperty test step");
+    }
 
-  if (teststep.stepOptions.filename != null) {
-    var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + teststep.stepOptions.filename;
-    console.log("  * Loading properties " + filename);
+    if (stepOption.filename != null) {
+      var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + stepOption.filename;
+      console.log("  * Loading properties " + filename);
 
-    try {
-      if (!fs.existsSync(filename)) {
-        console.error("  * %j is not a file", filename);
-        throw new Error('this is not a file')
+      try {
+        if (!fs.existsSync(filename)) {
+          console.error("  * %j is not a file", filename);
+          throw new Error('this is not a file')
+        }
+        JSON.parse(fs.readFileSync(filename, 'utf8'))
+          .forEach(function(value) {
+            properties.push(value);
+        });
+      } catch (err) {
+        console.error("  * Error while parsing %j", filename);
+        throw err
       }
-      JSON.parse(fs.readFileSync(filename, 'utf8'))
-        .forEach(function(value) {
-          properties.push(value);
-      });
-    } catch (err) {
-      console.error("  * Error while parsing %j", filename);
-      throw err
-    }
-  } else if (teststep.stepOptions.generator != null) {
-    var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + teststep.stepOptions.generator;
-    console.log("  * Loading properties generator " + filename);
-    if (!fs.existsSync(filename)) {
-      console.error("  * Cannot find generator %j", filename);
-      throw new Error('Cannot find generator')
-    }
-    var generator = require(filename, 'utf8');
-    generator().forEach(function(value) {
-          properties.push(value);
-      });
+    } else if (stepOption.generator != null) {
+      var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + stepOption.generator;
+      console.log("  * Loading properties generator " + filename);
+      if (!fs.existsSync(filename)) {
+        console.error("  * Cannot find generator %j", filename);
+        throw new Error('Cannot find generator')
+      }
+      var generator = require(filename, 'utf8');
+      generator().forEach(function(value) {
+            properties.push(value);
+        });
 
-  }
+    }
+  });
   return "Passed";
 }
 
@@ -198,18 +198,18 @@ function doStepSendRequest(teststep) {
   var requestFile = fs.readFileSync(requestFilePath, "utf8");
 
   var req = httpsync.request({
-    host: teststep.stepOptions.host,
-    port: teststep.stepOptions.port,
-    path: teststep.stepOptions.path,
-    protocol: teststep.stepOptions.protocol,
+    host: setXMLProperties(teststep.stepOptions.host),
+    port: setXMLProperties(teststep.stepOptions.port),
+    path: setXMLProperties(teststep.stepOptions.path),
+    protocol: setXMLProperties(teststep.stepOptions.protocol),
     method: "POST",
     useragent: "Nora.js",
     headers: {
-      'SOAPAction': teststep.stepOptions.SOAPAction,
+      'SOAPAction': setXMLProperties(teststep.stepOptions.SOAPAction),
       'Content-Type' : 'text/xml; charset="utf-8"'
     }
   });
-  console.log("  * Sending request to " + teststep.stepOptions.protocol + "://" + teststep.stepOptions.host + ":" + teststep.stepOptions.port + teststep.stepOptions.path);
+  console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol) + "://" + setXMLProperties(teststep.stepOptions.host) + ":" + setXMLProperties(teststep.stepOptions.port) + setXMLProperties(teststep.stepOptions.path));
   req.write(requestFile);
   response = req.end();
 
