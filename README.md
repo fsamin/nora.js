@@ -4,6 +4,8 @@ nora.js
 SOAP Web Services Non-Regression Automation with Javascript
 
 ## Depencencies
+python
+
 npm
 
 node.js

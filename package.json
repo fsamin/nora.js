@@ -2,6 +2,10 @@
   "name": "Nora.js",
   "description": "Non-Regression Automation JavaScript",
   "author": "Francois Samin <francois.samin@gmail.com>",
+  "repository" : { 
+    "type" : "git",
+    "url" : "http://github.com/fsamin/nora.js.git"
+  },
   "dependencies": {
     "request" : "2.42.x",
     "commander" : "2.3.x",
