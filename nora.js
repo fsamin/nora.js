@@ -199,6 +199,24 @@ function doStepSendRequest(teststep) {
 
   var requestFile = fs.readFileSync(requestFilePath, "utf8");
 
+  var getHeaders = function(stepOptions) {
+    var soapAction = setXMLProperties(teststep.stepOptions.SOAPAction);
+    var contentType = 'text/xml; charset="utf-8"';
+    if (stepOptions.http_user != null && stepOptions.http_pwd != null) {
+      var auth = "Basic " + new Buffer(stepOptions.http_user + ":" + stepOptions.http_pwd).toString('base64');
+      return {
+        'SOAPAction': soapAction,
+        'Content-Type' : contentType,
+        'Authorization' : auth
+      };
+    } else {
+      return {
+        'SOAPAction': soapAction,
+        'Content-Type' : contentType
+      };
+    }
+  }
+
   var req = httpsync.request({
     host: setXMLProperties(teststep.stepOptions.host),
     port: setXMLProperties(teststep.stepOptions.port),
@@ -206,11 +224,9 @@ function doStepSendRequest(teststep) {
     protocol: setXMLProperties(teststep.stepOptions.protocol),
     method: "POST",
     useragent: "Nora.js",
-    headers: {
-      'SOAPAction': setXMLProperties(teststep.stepOptions.SOAPAction),
-      'Content-Type' : 'text/xml; charset="utf-8"'
-    }
+    headers: getHeaders(teststep.stepOptions)
   });
+  console.dir(req);
   console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol) + "://" + setXMLProperties(teststep.stepOptions.host) + ":" + setXMLProperties(teststep.stepOptions.port) + setXMLProperties(teststep.stepOptions.path));
   req.write(requestFile);
   try {
@@ -364,7 +380,7 @@ function setXMLProperties(xmlStream, namespaces) {
       xmlStream = xmlStream.replace(match, matchingValue);  
     });
   } 
-  
+
   arrMatches.forEach(function(match){
     var propertyName = match.trim().replace(/\$\{/, "").replace(/\}/, "");
     var found = false;

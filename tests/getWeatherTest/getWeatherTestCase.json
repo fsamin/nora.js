@@ -21,6 +21,8 @@
 		"stepID" : "3",
 		"stepAction" : "sendRequest",
 		"stepOptions" : {
+			"http_user" : "user",
+			"http_pwd" : "pwd",
 			"requestID" : "getWeatherRequest",
 			"protocol" : "http",
 			"host" : "${host}",
