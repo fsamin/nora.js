@@ -51,7 +51,8 @@
 				{
 					"type" : "xpath",
 					"xpath" : "//weather:GetCityForecastByZIPResponse/weather:GetCityForecastByZIPResult/weather:WeatherStationCity",
-					"match" : "Houston"
+					"match" : "Houston",
+					"namespaces": {"weather" : "http://ws.cdyne.com/WeatherWS/"}
 				},
 				{
 					"type" : "xpath",
