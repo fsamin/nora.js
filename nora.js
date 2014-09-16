@@ -226,7 +226,7 @@ function doStepSendRequest(teststep) {
     useragent: "Nora.js",
     headers: getHeaders(teststep.stepOptions)
   });
-  console.dir(req);
+  
   console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol) + "://" + setXMLProperties(teststep.stepOptions.host) + ":" + setXMLProperties(teststep.stepOptions.port) + setXMLProperties(teststep.stepOptions.path));
   req.write(requestFile);
   try {
