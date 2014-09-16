@@ -21,10 +21,12 @@ program
   .option('-t, --testcase [filename]', 'set the testcase', 'tests/getWeatherTest/getWeatherTestCase.json')
   .parse(process.argv);
 
-var runDir = path.join(__dirname, "runs" + path.sep + path.basename(program.testcase, ".json") + path.sep +  moment().format("YYYYMMDD-HHmmss"));
+var dir = path.join(path.join(__dirname, program.testcase), "..")
+var runDir = path.join(dir, "runs" + path.sep + path.basename(program.testcase, ".json") + path.sep +  moment().format("YYYYMMDD-HHmmss"));
 fs.mkdirsSync(runDir);
 
 console.info("Loading %j", program.testcase);
+console.info("Running in %j", runDir);
 
 var testcase = JSON.parse(fs.readFileSync(program.testcase, 'utf8'));
 
@@ -334,7 +336,7 @@ function doStepCheckXML(teststep) {
   */
 
 function setXMLProperties(xmlStream, namespaces) {
-  var pattern = new RegExp(/\$\{.*\}/);
+  var pattern = new RegExp(/\$\{.*\}/g);
   var arrMatches = xmlStream.match(pattern);
 
   if (arrMatches == null) {
@@ -342,7 +344,7 @@ function setXMLProperties(xmlStream, namespaces) {
   } 
   
   //On va traiter les propriétés relatives à des références XPATH
-  var xpathPattern = new RegExp(/\$\{.*:.*\}/);
+  var xpathPattern = new RegExp(/\$\{.*:.*\}/g);
   var arrXpathMatches = xmlStream.match(xpathPattern);
 
   if (arrXpathMatches != null) {
@@ -362,8 +364,7 @@ function setXMLProperties(xmlStream, namespaces) {
       xmlStream = xmlStream.replace(match, matchingValue);  
     });
   } 
-
-
+  
   arrMatches.forEach(function(match){
     var propertyName = match.trim().replace(/\$\{/, "").replace(/\}/, "");
     var found = false;
