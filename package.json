@@ -16,7 +16,7 @@
     "xpath" : "0.0.7",
     "xmldom" : "0.1.19",
     "pretty-data" : "0.40.x",
-    "sleep" : "1.1.8"
+    "shelljs" : "0.3.0"
   },
   "optionalDependencies": {
     "http-sync": "0.0.4",

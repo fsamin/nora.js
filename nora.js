@@ -14,7 +14,7 @@ var table = require('easy-table');
 var xpath = require('xpath')
 var dom = require('xmldom').DOMParser;
 var pd = require('pretty-data').pd;
-var sleep = require('sleep');
+var shelljs = require('shelljs');
 
 program
   .version('0.0.1')
@@ -76,7 +76,7 @@ function doTestStep(teststep, index, testcase) {
       if (nbAttempt <= teststep.stepReplayOnFailure) {
         console.warn(" * Last step is failed. Retry");
         if (teststep.stepWaitBeforeReplay != null) {
-          sleep.sleep(teststep.stepWaitBeforeReplay);
+          shelljs.exec("python " + __dirname + "/lib/sleep.py" + teststep.stepWaitBeforeReplay);
         }
         retry = true;
       } else {
