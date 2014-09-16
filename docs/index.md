@@ -335,3 +335,21 @@ But don't forget you declare namespaces by add namespaces declaration in **stepO
 ----------
 
 ##File & Folders Organization##
+
+A test case is a single json file. Since severals files (properties, template, etc...) are pre-requisites to the testcase, their paths have to be relatives to the testcase.
+
+Each times you run the test case, a new directory will be created under the **runs** directory. In this directory, every xml paylod will be saved.
+
+----------
+
+##Command & Options##
+
+	$ node nora -h
+
+  	Usage: nora [options]
+
+  		Options:
+
+    	-h, --help                 output usage information
+    	-V, --version              output the version number
+    	-t, --testcase [filename]  set the testcase

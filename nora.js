@@ -279,7 +279,7 @@ function doStepCheckXML(teststep) {
           throw new Error("Malformated assertion test step");
         }
 
-        var tmpResult = (xmlFile.indexOf(setXMLProperties(myAssert.value, myAssert.namespaces) > -1);
+        var tmpResult = (xmlFile.indexOf(setXMLProperties(myAssert.value, myAssert.namespaces)) > -1);
         result  = result && tmpResult;
         console.log("  * " + myAssert.type  + " - " + myAssert.value + " : " + tmpResult);
         break;
@@ -290,7 +290,7 @@ function doStepCheckXML(teststep) {
           throw new Error("Malformated assertion test step");
         }
 
-        var tmpResult = (xmlFile.indexOf(setXMLProperties(myAssert.value,myAssert.namespaces) == -1);
+        var tmpResult = (xmlFile.indexOf(setXMLProperties(myAssert.value,myAssert.namespaces)) == -1);
         result  = result && tmpResult;
         console.log("  * " + myAssert.type  + " - " + myAssert.value + " : " + tmpResult);
         break;
