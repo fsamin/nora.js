@@ -11,7 +11,7 @@ var path = require('path');
 var program = require('commander');
 var moment = require('moment');
 var table = require('easy-table');
-var xpath = require('xpath')
+var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 var pd = require('pretty-data').pd;
 var shelljs = require('shelljs');
@@ -22,7 +22,7 @@ program
   .option('-t, --testcase [filename]', 'set the testcase', 'tests/getWeatherTest/getWeatherTestCase.json')
   .parse(process.argv);
 
-var dir = path.join(path.join(__dirname, program.testcase), "..")
+var dir = path.join(path.join(__dirname, program.testcase), "..");
 var runDir = path.join(dir, "runs" + path.sep + path.basename(program.testcase, ".json") + path.sep +  moment().format("YYYYMMDD-HHmmss"));
 fs.mkdirsSync(runDir);
 
@@ -74,11 +74,11 @@ function doTestStep(teststep, index, testcase) {
         console.dir(teststep);
         status = "Failed";
     }
-    if (status != "Passed" && teststep.stepReplayOnFailure != null) {
+    if (status != "Passed" && teststep.stepReplayOnFailure) {
       nbAttempt++;
       if (nbAttempt <= teststep.stepReplayOnFailure) {
         console.warn(" * Last step is failed. Retry");
-        if (teststep.stepWaitBeforeReplay != null) {
+        if (teststep.stepWaitBeforeReplay) {
           shelljs.exec("python " + __dirname + "/lib/sleep.py" + teststep.stepWaitBeforeReplay);
         }
         retry = true;
@@ -98,8 +98,8 @@ function doTestStep(teststep, index, testcase) {
 function doStepLoadProperties(teststep) {
   console.log("* " + teststep.stepID  + " - " + teststep.stepName);
   teststep.stepOptions.forEach(function(stepOption){
-    if (stepOption.filename == null
-      && stepOption.generator == null) {
+    if (stepOption.filename === null
+      && stepOption.generator === null) {
       console.error("Error parsing " + teststep.stepID + " options.\n filename or generator, is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
       console.dir(teststep);
       throw new Error("Malformated loadProperty test step");
@@ -112,7 +112,7 @@ function doStepLoadProperties(teststep) {
       try {
         if (!fs.existsSync(filename)) {
           console.error("  * %j is not a file", filename);
-          throw new Error('this is not a file')
+          throw new Error('this is not a file');
         }
         JSON.parse(fs.readFileSync(filename, 'utf8'))
           .forEach(function(value) {
@@ -120,14 +120,14 @@ function doStepLoadProperties(teststep) {
         });
       } catch (err) {
         console.error("  * Error while parsing %j", filename);
-        throw err
+        throw err;
       }
     } else if (stepOption.generator != null) {
       var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + stepOption.generator;
       console.log("  * Loading properties generator " + filename);
       if (!fs.existsSync(filename)) {
         console.error("  * Cannot find generator %j", filename);
-        throw new Error('Cannot find generator')
+        throw new Error('Cannot find generator');
       }
       var generator = require(filename, 'utf8');
       generator().forEach(function(value) {
@@ -167,7 +167,7 @@ function doStepMakeRequest(teststep) {
     }); 
   } catch (err) {
     console.error("  * Error while parsing %j", template);
-    throw err
+    throw err;
   }
   return "Passed";
 }
@@ -216,7 +216,7 @@ function doStepSendRequest(teststep) {
         'Content-Type' : contentType
       };
     }
-  }
+  };
 
   var req = httpsync.request({
     host: setXMLProperties(teststep.stepOptions.host),
@@ -243,7 +243,7 @@ function doStepSendRequest(teststep) {
   if (response.statusCode != 200) {
     console.error("   * Error " + response.statusCode + " send by server. See detail below.");
     console.dir(response);
-    console.dir(responseFile)
+    console.dir(responseFile);
     return "Failed";
   } else {
     var responseFilePath = runDir + path.sep + teststep.stepOptions.responseID + ".xml";
