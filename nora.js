@@ -18,6 +18,7 @@ var shelljs = require('shelljs');
 
 program
   .version('0.0.1')
+  .option('-d, --debug', 'debug mode')
   .option('-t, --testcase [filename]', 'set the testcase', 'tests/getWeatherTest/getWeatherTestCase.json')
   .parse(process.argv);
 
@@ -25,8 +26,8 @@ var dir = path.join(path.join(__dirname, program.testcase), "..")
 var runDir = path.join(dir, "runs" + path.sep + path.basename(program.testcase, ".json") + path.sep +  moment().format("YYYYMMDD-HHmmss"));
 fs.mkdirsSync(runDir);
 
-console.info("Loading %j", program.testcase);
-console.info("Running in %j", runDir);
+console.info("# Loading %j", program.testcase);
+console.info("# Running in %j", runDir);
 
 var testcase = JSON.parse(fs.readFileSync(program.testcase, 'utf8'));
 
@@ -44,7 +45,7 @@ result.forEach(function (res) {
     t.newRow();
 });
 
-console.info("TestCase %j Report", program.testcase);
+console.info("# TestCase %j Report", program.testcase);
 console.log(t.toString());
 
 /**
@@ -202,7 +203,7 @@ function doStepSendRequest(teststep) {
   var getHeaders = function(stepOptions) {
     var soapAction = setXMLProperties(teststep.stepOptions.SOAPAction);
     var contentType = 'text/xml; charset="utf-8"';
-    if (stepOptions.http_user != null && stepOptions.http_pwd != null) {
+    if (stepOptions.http_user && stepOptions.http_pwd) {
       var auth = "Basic " + new Buffer(stepOptions.http_user + ":" + stepOptions.http_pwd).toString('base64');
       return {
         'SOAPAction': soapAction,
@@ -226,10 +227,10 @@ function doStepSendRequest(teststep) {
     useragent: "Nora.js",
     headers: getHeaders(teststep.stepOptions)
   });
-  
   console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol) + "://" + setXMLProperties(teststep.stepOptions.host) + ":" + setXMLProperties(teststep.stepOptions.port) + setXMLProperties(teststep.stepOptions.path));
   req.write(requestFile);
   try {
+    if (program.debug) console.dir(req);
     response = req.end();
   } catch (err) {
     console.error("  * Error sending http request...");
@@ -363,20 +364,20 @@ function setXMLProperties(xmlStream, namespaces) {
   var xpathPattern = new RegExp(/\$\{.*:.*\}/g);
   var arrXpathMatches = xmlStream.match(xpathPattern);
 
-  if (arrXpathMatches != null) {
+  if (arrXpathMatches) {
     arrXpathMatches.forEach(function(match){
       var xmlID = match.trim().replace(/\$\{/, "").replace(/:.*\}/, "");
-      console.log("    * Found reference to " + xmlID + ", loading...");
+      if (program.debug) console.log("    * Found reference to " + xmlID + ", loading...");
       var xmlFilePath = runDir + path.sep + xmlID + ".xml";
       var xmlFile = fs.readFileSync(xmlFilePath, "utf8");
       var xpathStr = match.trim().replace(/\$\{(.*?):/, "").replace(/\}/, "");
-      console.log("    * Found xpath " + xpathStr + ", loading...");
+      if (program.debug) console.log("    * Found xpath " + xpathStr + ", loading...");
       var doc = new dom().parseFromString(xmlFile);
       var select = xpath.useNamespaces(namespaces);
       var nodes = select(xpathStr, doc);
       var matchingValue = nodes[0].firstChild.nodeValue;
-      console.log("    * Found matching values : " + matchingValue);
-      console.log("    * Replacing " + match + " by " + matchingValue);
+      if (program.debug) console.log("    * Found matching values : " + matchingValue);
+      if (program.debug) console.log("    * Replacing " + match + " by " + matchingValue);
       xmlStream = xmlStream.replace(match, matchingValue);  
     });
   } 
@@ -392,7 +393,7 @@ function setXMLProperties(xmlStream, namespaces) {
       }
     });
     if (found) {
-      console.log("  * Replacing " + property.propertyName + " by " + property.propertyValue);
+      if (program.debug) console.log("  * Replacing " + property.propertyName + " by " + property.propertyValue);
       xmlStream = xmlStream.replace(match, property.propertyValue);      
     }
   });
