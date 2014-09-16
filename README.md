@@ -15,3 +15,6 @@ npm install
 
 ## Run the getWeather sample testcase
 node nora.js
+
+## Documentation ##
+[Here](./docs/index.md "here")

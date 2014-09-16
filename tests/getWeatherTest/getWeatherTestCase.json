@@ -2,7 +2,7 @@
 	{
 		"stepName" :	"Load Properties",
 		"stepID" : "1",
-		"stepAction" : "loadProperty",
+		"stepAction" : "loadProperties",
 		"stepOptions" : [{
 			"generator" : "zipcode.js"
 				}, {
@@ -14,7 +14,8 @@
 		"stepAction" : "makeRequest",
 		"stepOptions" : {
 			"requestID" : "getWeatherRequest",
-			"requestTemplate" : "getWeatherTemplate.xml"
+			"requestTemplate" : "getWeatherTemplate.xml",
+			"namespaces": {"weather" : "http://ws.cdyne.com/WeatherWS/"},
 			}
 	},{
 		"stepName" : "Send GetWeather Request",
@@ -29,8 +30,8 @@
 			"SOAPAction": "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP",
 			"responseID" : "getWeatherResponse"
 			},
-		"stepReplayOnFailure" : 5,
-		"stepWaitBeforeReplay" : 5
+		"stepReplayOnFailure" : 2,
+		"stepWaitBeforeReplay" : 2
 	}, {
 		"stepName" : "Check GetWeather Response",
 		"stepID" : "4",
@@ -40,7 +41,8 @@
 			"asserts" : [
 				{
 					"type" : "contains",
-					"value" : "City Found"
+					"value" : "${getWeatherResponse://weather:GetCityForecastByZIPResponse/weather:GetCityForecastByZIPResult/weather:WeatherStationCity}",
+					"namespaces": {"weather" : "http://ws.cdyne.com/WeatherWS/"}
 				},
 				{
 					"type" : "notContains",

@@ -54,7 +54,7 @@ function doTestStep(teststep, index, testcase) {
   var retry = true;
   while (status != "passed" && retry) {
     switch(teststep.stepAction) {
-      case "loadProperty" :
+      case "loadProperties" :
         status = doStepLoadProperties(teststep);
         break;
       case "makeRequest" :
@@ -154,7 +154,7 @@ function doStepMakeRequest(teststep) {
   console.log("  * Loading Request Template " + template);
   try {
     var request = fs.readFileSync(template, "utf8");
-    request = setXMLProperties(request);
+    request = setXMLProperties(request, teststep.stepOptions.namespaces);
     console.log("  * Saving Request " + teststep.stepOptions.requestID + ".xml");
     fs.writeFileSync(runDir  + path.sep + teststep.stepOptions.requestID+".xml", pd.xml(request), "utf8", function(err) {
         if(err) {
@@ -211,8 +211,13 @@ function doStepSendRequest(teststep) {
   });
   console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol) + "://" + setXMLProperties(teststep.stepOptions.host) + ":" + setXMLProperties(teststep.stepOptions.port) + setXMLProperties(teststep.stepOptions.path));
   req.write(requestFile);
-  response = req.end();
-
+  try {
+    response = req.end();
+  } catch (err) {
+    console.error("  * Error sending http request...");
+    console.error(err);
+    return "Failed";
+  }
   console.log("  * HTTP-Status:" + response.statusCode);
   var responseFile = response.body.toString();
 
@@ -274,7 +279,7 @@ function doStepCheckXML(teststep) {
           throw new Error("Malformated assertion test step");
         }
 
-        var tmpResult = (xmlFile.indexOf(myAssert.value) > -1);
+        var tmpResult = (xmlFile.indexOf(setXMLProperties(myAssert.value, myAssert.namespaces) > -1);
         result  = result && tmpResult;
         console.log("  * " + myAssert.type  + " - " + myAssert.value + " : " + tmpResult);
         break;
@@ -285,7 +290,7 @@ function doStepCheckXML(teststep) {
           throw new Error("Malformated assertion test step");
         }
 
-        var tmpResult = (xmlFile.indexOf(myAssert.value) == -1);
+        var tmpResult = (xmlFile.indexOf(setXMLProperties(myAssert.value,myAssert.namespaces) == -1);
         result  = result && tmpResult;
         console.log("  * " + myAssert.type  + " - " + myAssert.value + " : " + tmpResult);
         break;
@@ -380,6 +385,8 @@ function setXMLProperties(xmlStream, namespaces) {
 function printResult (val, width) {
    if ( val == "Failed") {
       return '\033[31m' + String(val) + '\033[39m';
+    } else if (val == "Passed") {
+      return '\033[32m' + String(val) + '\033[39m';
     } else {
       return table.string(val);
     }
