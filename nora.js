@@ -22,7 +22,7 @@ program
   .option('-t, --testcase [filename]', 'set the testcase', 'tests/getWeatherTest/getWeatherTestCase.json')
   .parse(process.argv);
 
-var dir = path.join(path.join(__dirname, program.testcase), "..");
+var dir = path.resolve(path.dirname(program.testcase));
 var runDir = path.join(dir, "runs" + path.sep + path.basename(program.testcase, ".json") + path.sep +  moment().format("YYYYMMDD-HHmmss"));
 fs.mkdirsSync(runDir);
 
@@ -106,7 +106,7 @@ function doStepLoadProperties(teststep) {
     }
 
     if (stepOption.filename != null) {
-      var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + stepOption.filename;
+      var filename = dir + path.sep + stepOption.filename;
       console.log("  * Loading properties " + filename);
 
       try {
@@ -123,7 +123,7 @@ function doStepLoadProperties(teststep) {
         throw err;
       }
     } else if (stepOption.generator != null) {
-      var filename = path.join(path.join(__dirname, program.testcase), "..") + path.sep + stepOption.generator;
+      var filename = dir + path.sep + stepOption.generator;
       console.log("  * Loading properties generator " + filename);
       if (!fs.existsSync(filename)) {
         console.error("  * Cannot find generator %j", filename);
@@ -153,7 +153,7 @@ function doStepMakeRequest(teststep) {
     throw new Error("Malformated makeRequest test step");
   }
 
-  var template = path.join(path.join(__dirname, program.testcase), "..") + path.sep + teststep.stepOptions.requestTemplate;
+  var template = dir + path.sep + teststep.stepOptions.requestTemplate;
   console.log("  * Loading Request Template " + template);
   try {
     var request = fs.readFileSync(template, "utf8");
@@ -200,7 +200,7 @@ function doStepSendRequest(teststep) {
 
   var requestFile = fs.readFileSync(requestFilePath, "utf8");
 
-  var getHeaders = function(stepOptions) {
+  var getHeaders = function(stepOptions, requestFile) {
     var soapAction = setXMLProperties(teststep.stepOptions.SOAPAction);
     var contentType = 'text/xml; charset="utf-8"';
     if (stepOptions.http_user && stepOptions.http_pwd) {
@@ -208,12 +208,16 @@ function doStepSendRequest(teststep) {
       return {
         'SOAPAction': soapAction,
         'Content-Type' : contentType,
-        'Authorization' : auth
+        'Authorization' : auth,
+        'Accept-Encoding': 'gzip,deflate',
+        'Content-Length': requestFile.length
       };
     } else {
       return {
         'SOAPAction': soapAction,
-        'Content-Type' : contentType
+        'Content-Type' : contentType,
+        'Accept-Encoding': 'gzip,deflate',
+        'Content-Length': requestFile.length
       };
     }
   };
@@ -225,7 +229,7 @@ function doStepSendRequest(teststep) {
     protocol: setXMLProperties(teststep.stepOptions.protocol),
     method: "POST",
     useragent: "Nora.js",
-    headers: getHeaders(teststep.stepOptions)
+    headers: getHeaders(teststep.stepOptions, requestFile)
   });
   console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol) + "://" + setXMLProperties(teststep.stepOptions.host) + ":" + setXMLProperties(teststep.stepOptions.port) + setXMLProperties(teststep.stepOptions.path));
   req.write(requestFile);
