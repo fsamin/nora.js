@@ -79,7 +79,7 @@ function doTestStep(teststep, index, testcase) {
       if (nbAttempt <= teststep.stepReplayOnFailure) {
         console.warn(" * Last step is failed. Retry");
         if (teststep.stepWaitBeforeReplay) {
-          shelljs.exec("python " + __dirname + "/lib/sleep.py" + teststep.stepWaitBeforeReplay);
+          shelljs.exec("python " + __dirname + path.sep + "lib" + path.sep +  "sleep.py " + teststep.stepWaitBeforeReplay);
         }
         retry = true;
       } else {
