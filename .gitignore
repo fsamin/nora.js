@@ -27,3 +27,4 @@ node_modules
 # Others
 runs
 .DS_Store
+.idea/*
