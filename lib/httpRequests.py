@@ -9,17 +9,13 @@ def zeroArgs(_args):
 
 def jsonRequest(_args):
     jsonArg = json.loads(_args[1])
-    valid = verifyArgs(jsonArg)
-    if not valid:
-        raise Exception("Json arg is not valid : host, port, path, protocol and method are required !")
+    verifyArgs(jsonArg)
     resp = sendHttpRequest(jsonArg)
     return resp.text
 
 def fileInputRequest(_args):
     jsonArg = json.loads(_args[1])
-    valid = verifyArgs(jsonArg)
-    if not valid:
-        raise Exception("Json arg is not valid : host, port, path, protocol and method are required !")
+    verifyArgs(jsonArg)
     filePath = _args[2]
     jsonArg["body"] = open(filePath, 'r').read()
     resp = sendHttpRequest(jsonArg)
@@ -27,9 +23,7 @@ def fileInputRequest(_args):
 
 def fileOutputRequest(_args):
     jsonArg = json.loads(_args[1])
-    valid = verifyArgs(jsonArg)
-    if not valid:
-        raise Exception("Json arg is not valid : host, port, path, protocol and method are required !")
+    verifyArgs(jsonArg)
     inputFilePath = _args[2]
     jsonArg["body"] = open(inputFilePath, 'r').read()
     resp = sendHttpRequest(jsonArg)
@@ -42,6 +36,7 @@ def fileOutputRequest(_args):
 
 
 def verifyArgs(_args):
+    valid = True
     if _args is not None:
         host = _args.get("host")
         port = _args.get("port")
@@ -50,8 +45,11 @@ def verifyArgs(_args):
         method = _args.get("method")
         required = [host,port,path,protocol,method]
         found = filter(None,required)
-        return len(required) == len(found)
-    return False
+        valid = len(required) == len(found)
+    else :
+        valid = False
+    if not valid:
+        raise Exception("Json arg is not valid : host, port, path, protocol and method are required !")
 
 def makeURL(_args):
     return _args.get("protocol") + "://" + _args.get("host") + ":" + _args.get("port") + _args.get("path")
@@ -84,8 +82,8 @@ options = {
 
 nbArgs = len(sys.argv)
 if nbArgs > 4 :
-    print "Too many arguments !"
-    print "usages : python httpRequests.py json [inputFilePath, outputFilePath]"
+    print("Too many arguments !")
+    print("usages : python httpRequests.py json [inputFilePath, outputFilePath]")
 else :
     res = options[nbArgs](sys.argv)
     sys.stdout.write(res)
