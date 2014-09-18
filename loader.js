@@ -5,18 +5,18 @@ var console = require('better-console');
 /**
   Traitement chargement de propriété
   */
-var loader = function doStepLoadProperties(dir, teststep, properties, debug) {
-  console.log("* " + teststep.stepID  + " - " + teststep.stepName);
-  teststep.stepOptions.forEach(function(stepOption){
+var loader = function doStepLoadProperties(runningTestStep) {
+  console.log("* " + runningTestStep.teststep.stepID  + " - " + runningTestStep.teststep.stepName);
+  runningTestStep.teststep.stepOptions.forEach(function(stepOption){
     if (stepOption.filename === null
       && stepOption.generator === null) {
-      console.error("Error parsing " + teststep.stepID + " options.\n filename or generator, is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
-      console.dir(teststep);
+      console.error("Error parsing " + runningTestStep.teststep.stepID + " options.\n filename or generator, is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+      console.dir(runningTestStep.teststep);
       throw new Error("Malformated loadProperty test step");
     }
 
     if (stepOption.filename != null) {
-      var filename = dir + path.sep + stepOption.filename;
+      var filename = runningTestStep.dir + path.sep + stepOption.filename;
       console.log("  * Loading properties " + filename);
 
       try {
@@ -26,14 +26,14 @@ var loader = function doStepLoadProperties(dir, teststep, properties, debug) {
         }
         JSON.parse(fs.readFileSync(filename, 'utf8'))
           .forEach(function(value) {
-            properties.push(value);
+            runningTestStep.properties.push(value);
         });
       } catch (err) {
         console.error("  * Error while parsing %j", filename);
         throw err;
       }
     } else if (stepOption.generator != null) {
-      var filename = dir + path.sep + stepOption.generator;
+      var filename = runningTestStep.dir + path.sep + stepOption.generator;
       console.log("  * Loading properties generator " + filename);
       if (!fs.existsSync(filename)) {
         console.error("  * Cannot find generator %j", filename);
@@ -41,7 +41,7 @@ var loader = function doStepLoadProperties(dir, teststep, properties, debug) {
       }
       var generator = require(filename, 'utf8');
       generator().forEach(function(value) {
-            properties.push(value);
+            runningTestStep.properties.push(value);
         });
 
     }

@@ -56,17 +56,29 @@ console.log(t.toString());
   Traitement principal itératif sur le flux JSON du cas de test
   */
 function doTestStep(teststep, index, testcase) {
+
+  var runningTestStep = {
+    index : index,
+    debug : program.debug,
+    dir : dir,
+    runDir : runDir,
+    teststep : teststep,
+    properties : properties,
+    status : "No Run",
+    stdout : null,
+  }; 
+
   var status;
   var nbAttempt = 1;
   var retry = true;
   while (status != "passed" && retry) {
     switch(teststep.stepAction) {
       case "loadProperties" :
-        status = loader(dir, teststep, properties, program.loader);
+        status = loader(runningTestStep);
         if (program.debug) console.dir(properties);
         break;
       case "makeRequest" :
-        status = requestMaker(dir, runDir, teststep, properties, program.loader);
+        status = requestMaker(runningTestStep);
         break;
       case "sendRequest" :
         status = doStepSendRequest(teststep);
@@ -79,6 +91,7 @@ function doTestStep(teststep, index, testcase) {
         console.dir(teststep);
         status = "Failed";
     }
+    runningTestStep.status = status;
     if (status != "Passed" && teststep.stepReplayOnFailure) {
       nbAttempt++;
       if (nbAttempt <= teststep.stepReplayOnFailure) {
