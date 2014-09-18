@@ -1,11 +1,13 @@
 var console = require('better-console');
 var request = require('request');
+/*
 var httpsync;
 try {
   httpsync = require('http-sync');
 } catch (ex) {
   httpsync = require('http-sync-win');
 }
+*/
 var fs = require('fs-extra');
 var path = require('path');
 var program = require('commander');
@@ -130,73 +132,56 @@ function doStepSendRequest(teststep) {
   }
 
   var requestFilePath = runDir + path.sep + teststep.stepOptions.requestID + ".xml";
-  
+  var responseFilePath = runDir + path.sep + teststep.stepOptions.responseID + ".xml";
+
   if (!fs.existsSync(requestFilePath)) {
       console.error("  * Cannot find XML %j", requestFilePath);
       return "Failed";
   }
 
   var requestFile = fs.readFileSync(requestFilePath, "utf8");
-
   var getHeaders = function(stepOptions, requestFile) {
     var soapAction = setXMLProperties(teststep.stepOptions.SOAPAction, null, properties, program.debug, runDir);
     var contentType = 'text/xml; charset="utf-8"';
-    if (stepOptions.http_user && stepOptions.http_pwd) {
-      var auth = "Basic " + new Buffer(stepOptions.http_user + ":" + stepOptions.http_pwd).toString('base64');
-      return {
+    return {
         'SOAPAction': soapAction,
         'Content-Type' : contentType,
-        'Authorization' : auth,
-        'Accept-Encoding': 'gzip,deflate',
-        'Content-Length': requestFile.length
-      };
-    } else {
-      return {
-        'SOAPAction': soapAction,
-        'Content-Type' : contentType,
-        'Accept-Encoding': 'gzip,deflate',
-        'Content-Length': requestFile.length
-      };
+        'Accept-Encoding' : 'gzip,deflate',
+        'Content-Length' : requestFile.length,
+        'User-Agent' : "Nora.js"
     }
   };
 
-  var req = httpsync.request({
-    host: setXMLProperties(teststep.stepOptions.host, null, properties, program.debug),
-    port: setXMLProperties(teststep.stepOptions.port, null, properties, program.debug),
-    path: setXMLProperties(teststep.stepOptions.path, null, properties, program.debug),
-    protocol: setXMLProperties(teststep.stepOptions.protocol, null, properties, program.debug),
-    method: "POST",
-    useragent: "Nora.js",
-    headers: getHeaders(teststep.stepOptions, requestFile)
-  });
+  if (teststep.stepOptions.http_user && teststep.stepOptions.http_pwd) {
+    var auth = [teststep.stepOptions.http_user, teststep.stepOptions.http_pwd];
+  }
+
+  var req = {
+    'host' : setXMLProperties(teststep.stepOptions.host, null, properties, program.debug),
+    'port' : setXMLProperties(teststep.stepOptions.port, null, properties, program.debug),
+    'path' : setXMLProperties(teststep.stepOptions.path, null, properties, program.debug),
+    'protocol' : setXMLProperties(teststep.stepOptions.protocol, null, properties, program.debug),
+    'method' : "POST",
+    'headers' : getHeaders(teststep.stepOptions, requestFile),
+    'auth' : auth
+  };
+
   console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol, null, properties, program.debug) + "://" + setXMLProperties(teststep.stepOptions.host, null, properties, program.debug) + ":" + setXMLProperties(teststep.stepOptions.port, null, properties, program.debug) + setXMLProperties(teststep.stepOptions.path, null, properties, program.debug));
-  req.write(requestFile);
   try {
     if (program.debug) console.dir(req);
-    response = req.end();
+    retour = shelljs.exec("python " + __dirname + path.sep + "lib" + path.sep +  "httpRequests.py '" + JSON.stringify(req) + "' \"" + requestFilePath + "\" \"" + responseFilePath + "\"");
   } catch (err) {
     console.error("  * Error sending http request...");
     console.error(err);
     return "Failed";
   }
-  console.log("  * HTTP-Status:" + response.statusCode);
-  var responseFile = response.body.toString();
+  console.log("  * HTTP-Status:" + retour.output);
 
-  if (response.statusCode != 200) {
-    console.error("   * Error " + response.statusCode + " send by server. See detail below.");
-    console.dir(response);
-    console.dir(responseFile);
+  if (retour != 200) {
+    console.error("   * Error " + retour + " send by server. See detail below.");
     return "Failed";
-  } else {
-    var responseFilePath = runDir + path.sep + teststep.stepOptions.responseID + ".xml";
-    console.log("  * Saving Response " + teststep.stepOptions.responseID + ".xml");
-    fs.writeFileSync(responseFilePath, pd.xml(responseFile), "utf8", function(err) {
-        if(err) {
-            console.error(err);
-            throw err;
-        } 
-    }); 
   }
+
   return "Passed";
 }
 
