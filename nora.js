@@ -1,13 +1,4 @@
 var console = require('better-console');
-var request = require('request');
-/*
-var httpsync;
-try {
-  httpsync = require('http-sync');
-} catch (ex) {
-  httpsync = require('http-sync-win');
-}
-*/
 var fs = require('fs-extra');
 var path = require('path');
 var program = require('commander');
@@ -15,8 +6,6 @@ var moment = require('moment');
 var table = require('easy-table');
 var shelljs = require('shelljs');
 var pd = require('pretty-data').pd;
-var dom = require('xmldom').DOMParser;
-var xpath = require('xpath');
 
 program
   .version('0.0.1')
@@ -36,9 +25,12 @@ var testcase = JSON.parse(fs.readFileSync(program.testcase, 'utf8'));
 var properties = [];
 var result = [];
 
-var setXMLProperties = require(__dirname + path.sep + "valuer.js", "utf8");
+var setXMLProperties = require(__dirname + path.sep + "request-valuer.js", "utf8");
+var printResult = require(__dirname + path.sep + "status-printer.js", "utf8");
 var loader = require(__dirname + path.sep + "loader.js", "utf8");
 var requestMaker = require(__dirname + path.sep + "request-generator.js", "utf8");
+var requestSender = require(__dirname + path.sep + "request-sender.js", "utf8");
+var xmlChecker = require(__dirname + path.sep + "payload-checker.js", "utf8");
 
 testcase.forEach(doTestStep);
 
@@ -83,10 +75,10 @@ function doTestStep(teststep, index, testcase) {
         status = requestMaker(runningTestStep);
         break;
       case "sendRequest" :
-        status = doStepSendRequest(teststep);
+        status = requestSender(runningTestStep);
         break;
       case "checkXML" :
-        status = doStepCheckXML(teststep);
+        status = xmlChecker(runningTestStep);
         break;
       default:
         console.error("* Unrecognize stepAction %j", teststep.stepAction);
@@ -112,175 +104,5 @@ function doTestStep(teststep, index, testcase) {
   result.push({id : index, step : teststep.stepName, result: status});
 }
 
-/**
-  Traitement d'envoi de la requête synchrone et de sauvegarde de la réponse
-  */
-function doStepSendRequest(teststep) {
-  console.log("* " + teststep.stepID  + " - " + teststep.stepName);
 
-  if (teststep.stepOptions.requestID == null || 
-    teststep.stepOptions.protocol == null ||
-    teststep.stepOptions.host == null ||
-    teststep.stepOptions.port == null ||
-    teststep.stepOptions.path == null ||
-    teststep.stepOptions.SOAPAction == null ||
-    teststep.stepOptions.responseID == null
-    ) {
-    console.error("Error parsing " + teststep.stepID + " options.\n requestID, protocol, host, port, path and SOAPAction and responseID are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
-    console.dir(teststep);
-    throw new Error("Malformated sendRequest test step");
-  }
 
-  var requestFilePath = runDir + path.sep + teststep.stepOptions.requestID + ".xml";
-  var responseFilePath = runDir + path.sep + teststep.stepOptions.responseID + ".xml";
-
-  if (!fs.existsSync(requestFilePath)) {
-      console.error("  * Cannot find XML %j", requestFilePath);
-      return "Failed";
-  }
-
-  var requestFile = fs.readFileSync(requestFilePath, "utf8");
-  var getHeaders = function(stepOptions, requestFile) {
-    var soapAction = setXMLProperties(teststep.stepOptions.SOAPAction, null, properties, program.debug, runDir);
-    var contentType = 'text/xml; charset="utf-8"';
-    return {
-        'SOAPAction': soapAction,
-        'Content-Type' : contentType,
-        'Accept-Encoding' : 'gzip,deflate',
-        'Content-Length' : requestFile.length,
-        'User-Agent' : "Nora.js"
-    }
-  };
-
-  if (teststep.stepOptions.http_user && teststep.stepOptions.http_pwd) {
-    var auth = [teststep.stepOptions.http_user, teststep.stepOptions.http_pwd];
-  }
-
-  var req = {
-    'host' : setXMLProperties(teststep.stepOptions.host, null, properties, program.debug),
-    'port' : setXMLProperties(teststep.stepOptions.port, null, properties, program.debug),
-    'path' : setXMLProperties(teststep.stepOptions.path, null, properties, program.debug),
-    'protocol' : setXMLProperties(teststep.stepOptions.protocol, null, properties, program.debug),
-    'method' : "POST",
-    'headers' : getHeaders(teststep.stepOptions, requestFile),
-    'auth' : auth
-  };
-
-  console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol, null, properties, program.debug) + "://" + setXMLProperties(teststep.stepOptions.host, null, properties, program.debug) + ":" + setXMLProperties(teststep.stepOptions.port, null, properties, program.debug) + setXMLProperties(teststep.stepOptions.path, null, properties, program.debug));
-  try {
-    if (program.debug) console.dir(req);
-    retour = shelljs.exec("python " + __dirname + path.sep + "lib" + path.sep +  "httpRequests.py '" + JSON.stringify(req) + "' \"" + requestFilePath + "\" \"" + responseFilePath + "\"");
-  } catch (err) {
-    console.error("  * Error sending http request...");
-    console.error(err);
-    return "Failed";
-  }
-  console.log("  * HTTP-Status:" + retour.output);
-
-  if (retour != 200) {
-    console.error("   * Error " + retour + " send by server. See detail below.");
-    return "Failed";
-  }
-
-  return "Passed";
-}
-
-/**
-  Traitement de vérification de trames
-  */
-function doStepCheckXML(teststep) {
-  console.log("* " + teststep.stepID  + " - " + teststep.stepName);
-  
-  if (teststep.stepOptions.xmlID == null || 
-    teststep.stepOptions.asserts == null
-    ) {
-    console.error("Error parsing " + teststep.stepID + " options.\n xmlID, asserts are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
-    console.dir(teststep);
-    throw new Error("Malformated sendRequest test step");
-  }
-
-  var xmlPath = runDir + path.sep + teststep.stepOptions.xmlID + ".xml";
-
-  if (!fs.existsSync(xmlPath)) {
-      console.error("  * Cannot find XML %j", xmlPath);
-      return "Failed";
-  }
-
-  var xmlFile = fs.readFileSync(xmlPath, "utf8");
-  var result = true;
-
-  teststep.stepOptions.asserts.forEach(function(myAssert){
-
-    if (myAssert.type == null) {
-      console.error("Error parsing assertion.\n type is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
-      console.dir(myAssert);
-      throw new Error("Malformated assertion test step");
-    }
-
-    switch(myAssert.type) {
-      case "contains" :
-        if (myAssert.value == null) {
-          console.error("Error parsing assertion.\n value is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
-          console.dir(myAssert);
-          throw new Error("Malformated assertion test step");
-        }
-
-        var tmpResult = (xmlFile.indexOf(setXMLProperties(myAssert.value, myAssert.namespaces, properties, program.debug)) > -1);
-        result  = result && tmpResult;
-        console.log("  * " + myAssert.type  + " - " + myAssert.value + " : " + tmpResult);
-        break;
-      case "notContains" :
-        if (myAssert.value == null) {
-          console.error("Error parsing assertion.\n value is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
-          console.dir(myAssert);
-          throw new Error("Malformated assertion test step");
-        }
-
-        var tmpResult = (xmlFile.indexOf(setXMLProperties(myAssert.value,myAssert.namespaces, properties, program.debug)) == -1);
-        result  = result && tmpResult;
-        console.log("  * " + myAssert.type  + " - " + myAssert.value + " : " + tmpResult);
-        break;
-      case "xpath" :
-        if (myAssert.xpath == null || myAssert.match == null) {
-          console.error("Error parsing assertion.\n xpath and match are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
-          console.dir(myAssert);
-          throw new Error("Malformated assertion test step");
-        }
-
-        var tmpResult = false;
-        try {
-          var doc = new dom().parseFromString(xmlFile);
-          var select = xpath.useNamespaces(myAssert.namespaces);
-          var nodes = select(myAssert.xpath, doc);
-          var match = setXMLProperties(myAssert.match, myAssert.matchNamespaces, properties, program.debug, runDir);
-          if (match ==  nodes[0].firstChild.nodeValue) {
-            tmpResult = true;
-          } 
-        } catch (err) {
-          console.error(err);
-          tmpResult = false;
-        }
-        result  = result && tmpResult;
-        console.log("  * " + myAssert.type  + " - " + myAssert.match + " : " + tmpResult);
-        break;
-      default:
-        console.error("* Unrecognize assert type %j", myAssert.type);
-        return "Failed";
-    }
-  });
-  if (result) 
-    return "Passed";
-  else
-    return "Failed";
-
-}
-
-function printResult (val, width) {
-   if ( val == "Failed") {
-      return '\033[31m' + String(val) + '\033[39m';
-    } else if (val == "Passed") {
-      return '\033[32m' + String(val) + '\033[39m';
-    } else {
-      return table.string(val);
-    }
-}

@@ -18,7 +18,7 @@ def fileInputRequest(_args):
     jsonArg = json.loads(_args[1])
     verifyArgs(jsonArg)
     filePath = _args[2]
-    jsonArg["body"] = open(filePath, 'r').read()
+    jsonArg["data"] = open(filePath, 'r').read()
     resp = sendHttpRequest(jsonArg)
     return resp.text
 
@@ -26,7 +26,7 @@ def fileOutputRequest(_args):
     jsonArg = json.loads(_args[1])
     verifyArgs(jsonArg)
     inputFilePath = _args[2]
-    jsonArg["body"] = open(inputFilePath, 'r').read()
+    jsonArg["data"] = open(inputFilePath, 'r').read()
     resp = sendHttpRequest(jsonArg)
 
     outputFilePath = _args[3]
