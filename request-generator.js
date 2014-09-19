@@ -1,7 +1,7 @@
 var fs = require('fs-extra');
 var path = require('path');
 var console = require('better-console');
-var setXMLProperties = require(__dirname + path.sep + "valuer.js", "utf8");
+var setXMLProperties = require(__dirname + path.sep + "request-valuer.js", "utf8");
 var pd = require('pretty-data').pd;
 
 
