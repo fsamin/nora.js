@@ -71,7 +71,7 @@ def sendHttpRequest(_args):
     # do something with prepped.body
     # do something with prepped.headers
 
-    resp = s.send(prepped,timeout=_args.get("timeout"))
+    resp = s.send(prepped,timeout=_args.get("timeout"), proxies=_args.get("proxies"))
     return resp
 
 options = {

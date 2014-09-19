@@ -55,6 +55,10 @@ var sender = function doStepSendRequest(runningTestStep) {
     var auth = [teststep.stepOptions.http_user, teststep.stepOptions.http_pwd];
   }
 
+  if (teststep.stepOptions.proxies) {
+    var proxies = teststep.stepOptions.proxies;
+  }
+
   var req = {
     'host' : setXMLProperties(teststep.stepOptions.host, null, properties, debug),
     'port' : setXMLProperties(teststep.stepOptions.port, null, properties, debug),
@@ -62,19 +66,20 @@ var sender = function doStepSendRequest(runningTestStep) {
     'protocol' : setXMLProperties(teststep.stepOptions.protocol, null, properties, debug),
     'method' : "POST",
     'headers' : getHeaders(teststep.stepOptions, requestFile),
-    'auth' : auth
+    'auth' : auth,
+    'proxies' : proxies
   };
 
   console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol, null, properties, debug) + "://" + setXMLProperties(teststep.stepOptions.host, null, properties, debug) + ":" + setXMLProperties(teststep.stepOptions.port, null, properties, debug) + setXMLProperties(teststep.stepOptions.path, null, properties, debug));
   try {
     if (debug) console.dir(req);
-    retour = shelljs.exec("python " + __dirname + path.sep + "lib" + path.sep +  "httpRequests.py '" + JSON.stringify(req) + "' \"" + requestFilePath + "\" \"" + responseFilePath + "\"");
+    retour = shelljs.exec("python " + __dirname + path.sep + "lib" + path.sep +  "httpRequests.py '" + JSON.stringify(req) + "' \"" + requestFilePath + "\" \"" + responseFilePath + "\"", {silent:true});
   } catch (err) {
     console.error("  * Error sending http request...");
     console.error(err);
     return "Failed";
   }
-  console.log("\n  * HTTP-Status:" + retour.output);
+  console.log("  * HTTP-Status:" + retour.output);
 
   if (retour.output != 200) {
     console.error("   * Error " + retour + " send by server. See detail below.");

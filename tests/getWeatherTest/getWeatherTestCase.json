@@ -29,7 +29,11 @@
 			"port" : "${port}",
 			"path": "/WeatherWS/Weather.asmx",
 			"SOAPAction": "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP",
-			"responseID" : "getWeatherResponse"
+			"responseID" : "getWeatherResponse",
+			"proxies" : {
+				"http":"rrcs-24-172-87-157.midsouth.biz.rr.com:3128",
+				"https":"rrcs-24-172-87-157.midsouth.biz.rr.com:3128"
+				}
 			},
 		"stepReplayOnFailure" : 2,
 		"stepWaitBeforeReplay" : 2
