@@ -2,9 +2,19 @@
   "name": "Nora.js",
   "description": "Non-Regression Automation JavaScript",
   "author": "Francois Samin <francois.samin@gmail.com>",
+  "main": "nora.js",
+  "bugs": {
+    "url": "https://github.com/nodejitsu/browsenpm.org/issues"
+  },
   "repository" : { 
     "type" : "git",
     "url" : "http://github.com/fsamin/nora.js.git"
+  },
+  "scripts": {
+    "test" : "node nora",
+    "start": "node nora --testcase $TESTCASE",
+    "preinstall": "echo im about to deploy",
+    "postinstall": "echo ive deployed"
   },
   "dependencies": {
     "request" : "2.42.x",
