@@ -59,6 +59,10 @@ var sender = function doStepSendRequest(runningTestStep) {
     var proxies = teststep.stepOptions.proxies;
   }
 
+  if (teststep.stepOptions.timeout) {
+      var timeout = teststep.stepOptions.timeout;
+  }
+
   var req = {
     'host' : setXMLProperties(teststep.stepOptions.host, null, properties, debug),
     'port' : setXMLProperties(teststep.stepOptions.port, null, properties, debug),
@@ -67,10 +71,17 @@ var sender = function doStepSendRequest(runningTestStep) {
     'method' : "POST",
     'headers' : getHeaders(teststep.stepOptions, requestFile),
     'auth' : auth,
-    'proxies' : proxies
+    'proxies' : proxies,
+    'timeout' : timeout
   };
 
   console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol, null, properties, debug) + "://" + setXMLProperties(teststep.stepOptions.host, null, properties, debug) + ":" + setXMLProperties(teststep.stepOptions.port, null, properties, debug) + setXMLProperties(teststep.stepOptions.path, null, properties, debug));
+  if (proxies) {
+    console.log("  * Using proxies : " + JSON.stringify(proxies));
+  }
+  if (timeout) {
+    console.log("  * With timeout : " + timeout +"s");
+  }
   try {
     if (debug) console.dir(req);
     retour = shelljs.exec("python " + __dirname + path.sep + "lib" + path.sep +  "httpRequests.py '" + JSON.stringify(req) + "' \"" + requestFilePath + "\" \"" + responseFilePath + "\"", {silent:true});
@@ -82,7 +93,8 @@ var sender = function doStepSendRequest(runningTestStep) {
   console.log("  * HTTP-Status:" + retour.output);
 
   if (retour.output != 200) {
-    console.error("   * Error " + retour + " send by server. See detail below.");
+    console.error("   * Error " + retour + " send by server.");
+    console.error("   * See more details in " + responseFilePath + ".");	
     return "Failed";
   }
 

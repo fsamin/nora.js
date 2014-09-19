@@ -30,6 +30,7 @@
 			"path": "/WeatherWS/Weather.asmx",
 			"SOAPAction": "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP",
 			"responseID" : "getWeatherResponse",
+			"timeout" : 5.5,
 			"proxies" : {
 				"http":"rrcs-24-172-87-157.midsouth.biz.rr.com:3128",
 				"https":"rrcs-24-172-87-157.midsouth.biz.rr.com:3128"
