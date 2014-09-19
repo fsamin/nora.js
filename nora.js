@@ -20,11 +20,15 @@ program
   .version('0.0.1')
   .option('-d, --debug', 'debug mode')
   .option('-t, --testcase [filename]', 'set the testcase', 'tests/getWeatherTest/getWeatherTestCase.json')
+  .option('-r, --report [filename]','set the file report','reports/report.xml')
   .parse(process.argv);
 
 var dir = path.resolve(path.dirname(program.testcase));
+var dirReport = path.resolve(path.dirname(program.report));
+
 var runDir = path.join(dir, "runs" + path.sep + path.basename(program.testcase, ".json") + path.sep +  moment().format("YYYYMMDD-HHmmss"));
 fs.mkdirsSync(runDir);
+fs.mkdirSync(dirReport);
 
 console.info("# Loading %j", program.testcase);
 console.info("# Running in %j", runDir);
@@ -37,18 +41,23 @@ var result = [];
 var setXMLProperties = require(__dirname + path.sep + "valuer.js", "utf8");
 var loader = require(__dirname + path.sep + "loader.js", "utf8");
 var requestMaker = require(__dirname + path.sep + "request-generator.js", "utf8");
+var reportMaker = require(__dirname + path.sep + "report-generator.js", "utf8");
 
 testcase.forEach(doTestStep);
 
 var t = new table();
 
+var nbKo=0;
 result.forEach(function (res) {
     t.cell('Id', res.id);
-    t.cell('Description', res.step);
+    t.cell('Description', res.step.stepName);
     t.cell('Result', res.result, printResult);
     t.newRow();
+	if(res.result != 'Passed'){
+		nbKo++;
+	} 
 });
-
+reportMaker(result,program.testcase,nbKo,program.report);
 console.info("# TestCase %j Report", program.testcase);
 console.log(t.toString());
 
@@ -68,6 +77,7 @@ function doTestStep(teststep, index, testcase) {
     stdout : null,
   }; 
 
+  
   var status;
   var nbAttempt = 1;
   var retry = true;
@@ -107,7 +117,8 @@ function doTestStep(teststep, index, testcase) {
       retry = false;
     }
   }
-  result.push({id : index, step : teststep.stepName, result: status});
+
+  result.push({id : index, step : teststep ,result: status});
 }
 
 /**
