@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from requests import Request, Session
+from requests.auth import HTTPBasicAuth
 import sys
 import json
 
@@ -17,7 +18,7 @@ def fileInputRequest(_args):
     jsonArg = json.loads(_args[1])
     verifyArgs(jsonArg)
     filePath = _args[2]
-    jsonArg["body"] = open(filePath, 'r').read()
+    jsonArg["data"] = open(filePath, 'r').read()
     resp = sendHttpRequest(jsonArg)
     return resp.text
 
@@ -25,7 +26,7 @@ def fileOutputRequest(_args):
     jsonArg = json.loads(_args[1])
     verifyArgs(jsonArg)
     inputFilePath = _args[2]
-    jsonArg["body"] = open(inputFilePath, 'r').read()
+    jsonArg["data"] = open(inputFilePath, 'r').read()
     resp = sendHttpRequest(jsonArg)
 
     outputFilePath = _args[3]
@@ -59,7 +60,7 @@ def sendHttpRequest(_args):
     url = makeURL(_args)
     req = Request(_args.get("method"), url)
     if (_args.get("headers") is not None) : req.headers = _args.get("headers")
-    if (_args.get("auth") is not None) : req.auth = _args.get("auth")
+    if (_args.get("auth") is not None) : req.auth = HTTPBasicAuth(_args.get("auth")[0], _args.get("auth")[1])
     if (_args.get("params") is not None) : req.params = _args.get("params")
     if (_args.get("cookies") is not None) : req.cookies = _args.get("cookies")
     if (_args.get("data") is not None) : req.data = _args.get("data")
@@ -70,7 +71,7 @@ def sendHttpRequest(_args):
     # do something with prepped.body
     # do something with prepped.headers
 
-    resp = s.send(prepped,timeout=_args.get("timeout"))
+    resp = s.send(prepped,timeout=_args.get("timeout"), proxies=_args.get("proxies"))
     return resp
 
 options = {

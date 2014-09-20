@@ -1,5 +1,4 @@
 var console = require('better-console');
-
 var fs = require('fs-extra');
 var path = require('path');
 var program = require('commander');
@@ -104,7 +103,6 @@ function doTestStep(teststep, index, testcase) {
   }
   result.push({id : index, step : teststep.stepName, result: status});
 }
-
 
 
 
