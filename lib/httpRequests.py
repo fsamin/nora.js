@@ -12,7 +12,7 @@ def jsonRequest(_args):
     jsonArg = json.loads(_args[1])
     verifyArgs(jsonArg)
     resp = sendHttpRequest(jsonArg)
-    return resp.text
+    return [resp.status_code,resp.text]
 
 def fileInputRequest(_args):
     jsonArg = json.loads(_args[1])
@@ -20,7 +20,7 @@ def fileInputRequest(_args):
     filePath = _args[2]
     jsonArg["data"] = open(filePath, 'r').read()
     resp = sendHttpRequest(jsonArg)
-    return resp.text
+    return [resp.status_code,resp.text]
 
 def fileOutputRequest(_args):
     jsonArg = json.loads(_args[1])
@@ -33,31 +33,37 @@ def fileOutputRequest(_args):
     with open(outputFilePath, "w") as response:
         response.write(resp.text.encode('utf-8'))
 
-    return str(resp.status_code)
+    return [resp.status_code,resp.status_code]
 
 
 def verifyArgs(_args):
     valid = True
     if _args is not None:
+        url = _args.get("url")
         host = _args.get("host")
         port = _args.get("port")
         path = _args.get("path")
         protocol = _args.get("protocol")
         method = _args.get("method")
         required = [host,port,path,protocol,method]
+        required_url = [url,method]
         found = filter(None,required)
-        valid = len(required) == len(found)
+        found_url = filter(None,required_url)
+        valid = (len(required) == len(found))  or  (len(required_url) == len(found_url))
     else :
         valid = False
     if not valid:
-        raise Exception("Json arg is not valid : host, port, path, protocol and method are required !")
+        raise Exception("Json arg is not valid : (host, port, path, protocol) or url and method are required !")
 
 def makeURL(_args):
     return _args.get("protocol") + "://" + _args.get("host") + ":" + _args.get("port") + _args.get("path")
 
 def sendHttpRequest(_args):
     s = Session()
-    url = makeURL(_args)
+    if (_args.get("url") is None):
+        url = makeURL(_args)
+    else:
+        url = _args.get("url")
     req = Request(_args.get("method"), url)
     if (_args.get("headers") is not None) : req.headers = _args.get("headers")
     if (_args.get("auth") is not None) : req.auth = HTTPBasicAuth(_args.get("auth")[0], _args.get("auth")[1])
@@ -87,7 +93,10 @@ if nbArgs > 4 :
     print("usages : python httpRequests.py json [inputFilePath, outputFilePath]")
 else :
     res = options[nbArgs](sys.argv)
-    sys.stdout.write(res)
+    sys.stdout.write(str(res[1]))
     sys.stdout.flush()
-    sys.exit(0)
+    if (res[0] != 200):
+        sys.exit(1)
+    else:
+        sys.exit(0)
 

@@ -26,10 +26,8 @@
     "xpath" : "0.0.7",
     "xmldom" : "0.1.19",
     "pretty-data" : "0.40.x",
-    "shelljs" : "0.3.0"
-  },
-  "optionalDependencies": {
-    "http-sync": "0.0.4",
-    "http-sync-win": "0.0.4"
+    "shelljs" : "0.3.0",
+    "JSONPath" : "0.10.x",
+    "underscore" : "1.7.0"
   }
 }
