@@ -99,11 +99,12 @@ var sender = function doStepSendRequest(runningTestStep) {
         console.error(err);
         return "Failed";
     }
-    console.log("  * HTTP-Status:" + retour.output);
 
-    if (retour.output != 200) {
-        console.error("   * Error " + retour + " send by server.");
-        console.error("   * See more details in " + responseFilePath + ".");
+    retour = JSON.parse(retour.output);
+    console.log("  * HTTP-Status : " + retour.code);
+
+    if (retour.code != 200) {
+        console.error("   * Error " + retour.code + " " + retour.text + " send by server.");
         return "Failed";
     }
 

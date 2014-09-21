@@ -91,12 +91,13 @@ var restSender = function doStepRestRequest(runningTestStep) {
     return "Failed";
   }
 
-  fs.writeFileSync(responseFilePath, retour.output, {"encoding": "utf8"});
+  retour = JSON.parse(retour.output);
 
+  fs.writeFileSync(responseFilePath, retour.text, {"encoding": "utf8"});
+  console.log("  * HTTP-Status : " + retour.code);
 
-  if (retour.code != 0) {
-    console.error("   * Error " + retour + " send by server.");
-    console.error("   * See more details in " + responseFilePath + ".");	
+  if (retour.code != 200) {
+    console.error("   * Error " + retour.code + " " + retour.text + " send by server.");
     return "Failed";
   }
 

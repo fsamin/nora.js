@@ -4,6 +4,7 @@ from requests import Request, Session
 from requests.auth import HTTPBasicAuth
 import sys
 import json
+import requests
 
 def zeroArgs(_args):
     print("You need at least one arguments !")
@@ -12,7 +13,7 @@ def jsonRequest(_args):
     jsonArg = json.loads(_args[1])
     verifyArgs(jsonArg)
     resp = sendHttpRequest(jsonArg)
-    return [resp.status_code,resp.text]
+    return resp
 
 def fileInputRequest(_args):
     jsonArg = json.loads(_args[1])
@@ -20,7 +21,7 @@ def fileInputRequest(_args):
     filePath = _args[2]
     jsonArg["data"] = open(filePath, 'r').read()
     resp = sendHttpRequest(jsonArg)
-    return [resp.status_code,resp.text]
+    return resp
 
 def fileOutputRequest(_args):
     jsonArg = json.loads(_args[1])
@@ -33,7 +34,7 @@ def fileOutputRequest(_args):
     with open(outputFilePath, "w") as response:
         response.write(resp.text.encode('utf-8'))
 
-    return [resp.status_code,resp.status_code]
+    return resp
 
 
 def verifyArgs(_args):
@@ -56,14 +57,14 @@ def verifyArgs(_args):
         raise Exception("Json arg is not valid : (host, port, path, protocol) or url and method are required !")
 
 def makeURL(_args):
-    return _args.get("protocol") + "://" + _args.get("host") + ":" + _args.get("port") + _args.get("path")
+    if (_args.get("url") is None):
+        return _args.get("protocol") + "://" + _args.get("host") + ":" + _args.get("port") + _args.get("path")
+    else:
+        return _args.get("url")
 
 def sendHttpRequest(_args):
     s = Session()
-    if (_args.get("url") is None):
-        url = makeURL(_args)
-    else:
-        url = _args.get("url")
+    url = makeURL(_args)
     req = Request(_args.get("method"), url)
     if (_args.get("headers") is not None) : req.headers = _args.get("headers")
     if (_args.get("auth") is not None) : req.auth = HTTPBasicAuth(_args.get("auth")[0], _args.get("auth")[1])
@@ -92,11 +93,12 @@ if nbArgs > 4 :
     print("Too many arguments !")
     print("usages : python httpRequests.py json [inputFilePath, outputFilePath]")
 else :
-    res = options[nbArgs](sys.argv)
-    sys.stdout.write(str(res[1]))
+    try:
+        res = options[nbArgs](sys.argv)
+        output = { 'code' : res.status_code, 'text' : res.text}
+    except:
+        output = { 'code' : "unknown", 'text' : "Unexpected error : " + str(sys.exc_info()[0])}
+    sys.stdout.write(json.dumps(output))
     sys.stdout.flush()
-    if (res[0] != 200):
-        sys.exit(1)
-    else:
-        sys.exit(0)
+    sys.exit(0)
 
