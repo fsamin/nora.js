@@ -24,23 +24,27 @@
 			"http_user" : "user",
 			"http_pwd" : "pwd",
 			"requestID" : "getWeatherRequest",
-			"protocol" : "http",
-			"host" : "${host}",
-			"port" : "${port}",
-			"path": "/WeatherWS/Weather.asmx",
+			"url" : "http://${host}:${port}/WeatherWS/Weather.asmx",
 			"SOAPAction": "http://ws.cdyne.com/WeatherWS/GetCityForecastByZIP",
-			"responseID" : "getWeatherResponse",
-			"timeout" : 5.5,
-			"proxies" : {
-				"http":"rrcs-24-172-87-157.midsouth.biz.rr.com:3128",
-				"https":"rrcs-24-172-87-157.midsouth.biz.rr.com:3128"
-				}
+			"responseID" : "getWeatherResponse"
+			},
+		"stepReplayOnFailure" : 2,
+		"stepWaitBeforeReplay" : 2
+	},{
+		"stepName" : "Send Rest Request",
+		"stepID" : "4",
+		"stepAction" : "sendRest",
+		"stepOptions" : {
+			"url" : "http://jsonplaceholder.typicode.com/users/1",
+			"responseID" : "getRestResponse",
+			"responseExtension" : ".json",
+			"method" : "GET"
 			},
 		"stepReplayOnFailure" : 2,
 		"stepWaitBeforeReplay" : 2
 	}, {
 		"stepName" : "Check GetWeather Response",
-		"stepID" : "4",
+		"stepID" : "5",
 		"stepAction" : "checkXML",
 		"stepOptions" : {
 			"xmlID" : "getWeatherResponse",
@@ -63,8 +67,43 @@
 					"type" : "xpath",
 					"xpath" : "//weather:GetCityForecastByZIPResponse/weather:GetCityForecastByZIPResult/weather:WeatherStationCity",
 					"namespaces": {"weather" : "http://ws.cdyne.com/WeatherWS/"},
-					"match" : "${getWeatherResponse://weather:GetCityForecastByZIPResponse/weather:GetCityForecastByZIPResult/weather:WeatherStationCity}",
+					"match" : "${getWeatherResponse:xml://weather:GetCityForecastByZIPResponse/weather:GetCityForecastByZIPResult/weather:WeatherStationCity}",
 					"matchNamespaces": {"weather" : "http://ws.cdyne.com/WeatherWS/"}
+				}
+			]
+		}
+	}, {
+		"stepName" : "Check Rest Response",
+		"stepID" : "6",
+		"stepAction" : "checkJSON",
+		"stepOptions" : {
+			"jsonID" : "getRestResponse",
+			"asserts" : [
+				{
+					"type" : "contains",
+					"value" : "Leanne Graham"
+				},
+				{
+					"type" : "notContains",
+					"value" : "Error"
+				},
+				{
+					"type" : "jsonPath",
+					"jsonPath" : "$.address.city",
+					"match" : "Gwenborough"
+				},
+				{
+					"type" : "jsonPath",
+					"jsonPath" : "$.address.geo",
+					"match" : [{
+					      "lat": "-37.3159",
+					      "lng": "81.1496"
+					    }]
+				},
+				{
+					"type" : "jsonPath",
+					"jsonPath" : "$.address.street",
+					"match" : "${getRestResponse:json:$.address.street}"
 				}
 			]
 		}

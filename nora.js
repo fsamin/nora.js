@@ -30,7 +30,9 @@ var printResult = require(__dirname + path.sep + "status-printer.js", "utf8");
 var loader = require(__dirname + path.sep + "loader.js", "utf8");
 var requestMaker = require(__dirname + path.sep + "request-generator.js", "utf8");
 var requestSender = require(__dirname + path.sep + "request-sender.js", "utf8");
+var restSender = require(__dirname + path.sep + "rest-sender.js", "utf8");
 var xmlChecker = require(__dirname + path.sep + "payload-checker.js", "utf8");
+var jsonChecker = require(__dirname + path.sep + "json-checker.js", "utf8");
 
 testcase.forEach(doTestStep);
 
@@ -77,8 +79,14 @@ function doTestStep(teststep, index, testcase) {
       case "sendRequest" :
         status = requestSender(runningTestStep);
         break;
+      case "sendRest" :
+        status = restSender(runningTestStep);
+        break;
       case "checkXML" :
         status = xmlChecker(runningTestStep);
+        break;
+      case "checkJSON" :
+        status = jsonChecker(runningTestStep);
         break;
       default:
         console.error("* Unrecognize stepAction %j", teststep.stepAction);

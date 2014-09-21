@@ -89,7 +89,7 @@ var checker = function doStepCheckXML(runningTestStep) {
           tmpResult = false;
         }
         result  = result && tmpResult;
-        console.log("  * " + myAssert.type  + " - " + myAssert.match + " : " + tmpResult);
+        console.log("  * " + myAssert.type  + " - " + myAssert.xpath + " = " + match + " : " + tmpResult);
         break;
       default:
         console.error("* Unrecognize assert type %j", myAssert.type);
