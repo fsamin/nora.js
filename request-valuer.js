@@ -54,7 +54,7 @@ var valuer = function setProperties(stream, namespaces, properties, debug, runDi
 
   //On va traiter les propriétés relatives à des références JSON
   var jsonPattern = new RegExp(/\$\{.*:json:.*\}/g);
-  var arrJsonMatches = stream.match(xpathPattern);
+  var arrJsonMatches = stream.match(jsonPattern);
 
   if (arrJsonMatches) {
     arrJsonMatches.forEach(function(match){
