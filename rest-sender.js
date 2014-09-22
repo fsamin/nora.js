@@ -66,7 +66,7 @@ var restSender = function doStepRestRequest(runningTestStep) {
     };
 
     if (teststep.stepOptions.url) {
-        req['url'] = setProperties(teststep.stepOptions.url, namespaces, properties, debug);
+        req['url'] = setProperties(teststep.stepOptions.url, namespaces, properties, debug, runDir);
         console.log("  * Sending request to " + setProperties(teststep.stepOptions.url, namespaces, properties, debug, runDir));
     } else {
         req['host'] = setProperties(teststep.stepOptions.host, namespaces, properties, debug, runDir);
