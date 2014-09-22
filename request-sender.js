@@ -91,7 +91,7 @@ var sender = function doStepSendRequest(runningTestStep) {
     }
     try {
 		jsonReq = JSON.stringify(req).replace(/\"/g,"'") 
-		cmd = "python " + __dirname + path.sep + "lib" + path.sep + "httpRequests.py \"" + jsonReq + "\" \"" + requestFilePath + "\" \"" + responseFilePath + "\""
+		cmd = "python \"" + __dirname + path.sep + "lib" + path.sep + "httpRequests.py\" \"" + jsonReq + "\" \"" + requestFilePath + "\" \"" + responseFilePath + "\""
 		if (debug) console.log ("  * Command : " +cmd)
         retour = shelljs.exec(cmd, {silent: true});
     } catch (err) {

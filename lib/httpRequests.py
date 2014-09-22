@@ -92,8 +92,8 @@ if nbArgs > 4 :
     print("usages : python httpRequests.py json [inputFilePath, outputFilePath]")
 else :
     try:
-    res = options[nbArgs](sys.argv)
-    output = { 'code' : res.status_code, 'text' : res.text}
+        res = options[nbArgs](sys.argv)
+        output = { 'code' : res.status_code, 'text' : res.text}
     except:
         output = { 'code' : "unknown", 'text' : "Unexpected error : " + str(sys.exc_info()[0])}
     sys.stdout.write(json.dumps(output))
