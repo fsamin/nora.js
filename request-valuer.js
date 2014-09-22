@@ -31,12 +31,12 @@ var valuer = function setProperties(stream, namespaces, properties, debug, runDi
   } 
   
   //On va traiter les propriétés relatives à des références XPATH
-  var xpathPattern = new RegExp(/\$\{.*:xml:.*\}/g);
+  var xpathPattern = new RegExp(/\$\{.*:xml:.*?\}/g);
   var arrXpathMatches = stream.match(xpathPattern);
 
   if (arrXpathMatches) {
     arrXpathMatches.forEach(function(match){
-      var xmlID = match.trim().replace(/\$\{/, "").replace(/:xml:.*\}/, "");
+      var xmlID = match.trim().replace(/\$\{/, "").replace(/:xml:.*?\}/, "");
       if (debug) console.log("    * Found reference to " + xmlID + ", loading...");
       var xmlFilePath = runDir + path.sep + xmlID + ".xml";
       var xmlFile = fs.readFileSync(xmlFilePath, "utf8");
@@ -53,12 +53,12 @@ var valuer = function setProperties(stream, namespaces, properties, debug, runDi
   }
 
   //On va traiter les propriétés relatives à des références JSON
-  var jsonPattern = new RegExp(/\$\{.*:json:.*\}/g);
+  var jsonPattern = new RegExp(/\$\{.*:json:.*?\}/g);
   var arrJsonMatches = stream.match(jsonPattern);
 
   if (arrJsonMatches) {
     arrJsonMatches.forEach(function(match){
-        var jsonID = match.trim().replace(/\$\{/, "").replace(/:json:.*\}/, "");
+        var jsonID = match.trim().replace(/\$\{/, "").replace(/:json:.*?\}/, "");
         if (debug) console.log("    * Found reference to " + jsonID + ", loading...");
         var jsonFilePath = runDir + path.sep + jsonID + ".json";
         var jsonFile = fs.readFileSync(jsonFilePath, "utf8");

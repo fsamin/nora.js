@@ -31,6 +31,7 @@ var sender = function doStepSendRequest(runningTestStep) {
         throw new Error("Malformated sendRequest test step");
     }
 
+    var namespaces = teststep.stepOptions.namespaces
     var requestFilePath = runDir + path.sep + teststep.stepOptions.requestID + ".xml";
     var responseFilePath = runDir + path.sep + teststep.stepOptions.responseID + ".xml";
 
@@ -41,7 +42,7 @@ var sender = function doStepSendRequest(runningTestStep) {
 
     var requestFile = fs.readFileSync(requestFilePath, "utf8");
     var getHeaders = function(stepOptions, requestFile) {
-        var soapAction = setXMLProperties(teststep.stepOptions.SOAPAction, null, properties, debug, runDir);
+        var soapAction = setXMLProperties(teststep.stepOptions.SOAPAction, namespaces, properties, debug, runDir);
         var contentType = 'text/xml; charset="utf-8"';
         return {
             'SOAPAction': soapAction,
@@ -73,14 +74,14 @@ var sender = function doStepSendRequest(runningTestStep) {
     };
 
     if (teststep.stepOptions.url) {
-        req['url'] = setXMLProperties(teststep.stepOptions.url, null, properties, debug);
-        console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.url, null, properties, debug));
+        req['url'] = setXMLProperties(teststep.stepOptions.url, namespaces, properties, debug, runDir);
+        console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.url, namespaces, properties, debug, runDir));
     } else {
-        req['host'] = setXMLProperties(teststep.stepOptions.host, null, properties, debug);
-        req['port'] = setXMLProperties(teststep.stepOptions.port, null, properties, debug);
-        req['path'] = setXMLProperties(teststep.stepOptions.path, null, properties, debug);
-        req['protocol'] = setXMLProperties(teststep.stepOptions.protocol, null, properties, debug);
-        console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol, null, properties, debug) + "://" + setXMLProperties(teststep.stepOptions.host, null, properties, debug) + ":" + setXMLProperties(teststep.stepOptions.port, null, properties, debug) + setXMLProperties(teststep.stepOptions.path, null, properties, debug));
+        req['host'] = setXMLProperties(teststep.stepOptions.host, namespaces, properties, debug, runDir);
+        req['port'] = setXMLProperties(teststep.stepOptions.port, namespaces, properties, debug, runDir);
+        req['path'] = setXMLProperties(teststep.stepOptions.path, namespaces, properties, debug, runDir);
+        req['protocol'] = setXMLProperties(teststep.stepOptions.protocol, namespaces, properties, debug, runDir);
+        console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol, namespaces, properties, debug, runDir) + "://" + setXMLProperties(teststep.stepOptions.host, namespaces, properties, debug, runDir) + ":" + setXMLProperties(teststep.stepOptions.port, namespaces, properties, debug, runDir) + setXMLProperties(teststep.stepOptions.path, namespaces, properties, debug, runDir));
     }
 
     if (proxies) {
