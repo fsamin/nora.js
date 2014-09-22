@@ -1,4 +1,7 @@
-[
+{
+"name" : "getWeather",
+"package" : "tests",
+"teststeps":[
 	{
 		"stepName" :	"Load Properties",
 		"stepID" : "1",
@@ -109,3 +112,4 @@
 		}
 	}
 ]
+}

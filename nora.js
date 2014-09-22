@@ -6,6 +6,8 @@ var moment = require('moment');
 var table = require('easy-table');
 var shelljs = require('shelljs');
 var pd = require('pretty-data').pd;
+var jsonxml = require('jsontoxml');
+var slugify = require('slugify');
 
 program
     .version('0.0.1')
@@ -14,16 +16,19 @@ program
     .parse(process.argv);
 
 var dir = path.resolve(path.dirname(program.testcase));
-var runDir = path.join(dir, "runs" + path.sep + path.basename(program.testcase, ".json") + path.sep + moment().format("YYYYMMDD-HHmmss"));
-fs.mkdirsSync(runDir);
-
-console.info("# Loading %j", program.testcase);
-console.info("# Running in %j", runDir);
 
 var testcase = JSON.parse(fs.readFileSync(program.testcase, 'utf8'));
-
+var className = testcase.package + "." + testcase.name
 var properties = [];
-var result = [];
+var executionReport = [];
+
+var runDir = path.join(dir, "runs" + path.sep + testcase.package + path.sep + testcase.name  + path.sep + moment().format("YYYYMMDD-HHmmss"));
+fs.mkdirsSync(runDir);
+
+
+
+console.info("# Loading %s.%s", testcase.package, testcase.name);
+console.info("# Running in %s", runDir);
 
 var setXMLProperties = require(__dirname + path.sep + "request-valuer.js", "utf8");
 var printResult = require(__dirname + path.sep + "status-printer.js", "utf8");
@@ -35,19 +40,22 @@ var xmlChecker = require(__dirname + path.sep + "payload-checker.js", "utf8");
 var jsonChecker = require(__dirname + path.sep + "json-checker.js", "utf8");
 var waitNext = require(__dirname + path.sep + "wait-next.js", "utf8");
 
-testcase.forEach(doTestStep);
+testcase.teststeps.forEach(doTestStep);
 
 var t = new table();
 
-result.forEach(function (res) {
-    t.cell('Id', res.id);
-    t.cell('Description', res.step);
-    t.cell('Result', res.result, printResult);
+executionReport.forEach(function (res) {
+    t.cell('Id', res.index);
+    t.cell('Description', res.teststep.stepName);
+    t.cell('Time', res.time);
+    t.cell('Result', res.status, printResult);
     t.newRow();
 });
 
-console.info("# TestCase %j Report", program.testcase);
+console.info("# TestCase %s.%s Report", testcase.package, testcase.name);
 console.log(t.toString());
+
+
 
 /**
  Traitement principal itératif sur le flux JSON du cas de test
@@ -62,12 +70,35 @@ function doTestStep(teststep, index, testcase) {
         teststep: teststep,
         properties: properties,
         status: "No Run",
-        stdout: null
+        failureMessage: null,
+        stdout: null,
+        time: null,
+        getXReport: function() {
+            if (this.status == "Passed") {
+                var report = [{
+                    name:'testcase',
+                    attrs:'name="' + this.teststep.stepName + '" classname="' + slugify(className  + '.' + this.teststep.stepName) + '", time= "' + this.time + '"'
+                }];
+                return jsonxml(report);
+            } else if (this.status == "Failed") {
+                 var report = [
+                    {
+                        name:'testcase',
+                        attrs:'name="' + this.teststep.stepName + '" classname="' + slugify(className  + '.' + this.teststep.stepName) + '", time= "' + this.time + '"',
+                        children:[
+                            {name:'failure',text:this.stdout,attrs:{message:this.failureMessage}}
+                        ]
+                    }
+                ];
+                return jsonxml(report);
+            }
+        }
     };
 
     var status;
     var nbAttempt = 1;
     var retry = true;
+    var startChrono = new moment();
     while (status != "passed" && retry) {
         switch (teststep.stepAction) {
             case "loadProperties" :
@@ -113,7 +144,12 @@ function doTestStep(teststep, index, testcase) {
             retry = false;
         }
     }
-    result.push({id: index, step: teststep.stepName, result: status});
+    var endChrono = new moment();
+
+    runningTestStep.result = status;
+    runningTestStep.time = endChrono.subtract(startChrono).millisecond();
+    if (program.debug) console.log(runningTestStep.getXReport(className));
+    executionReport.push(runningTestStep);
 }
 
 
