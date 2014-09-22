@@ -83,8 +83,10 @@ var restSender = function doStepRestRequest(runningTestStep) {
     console.log("  * With timeout : " + timeout +"s");
   }
   try {
-    if (debug) console.dir(req);
-    retour = shelljs.exec("python " + __dirname + path.sep + "lib" + path.sep +  "httpRequests.py '" + JSON.stringify(req) +"'", {silent:true});
+	jsonReq = JSON.stringify(req).replace(/\"/g,"'") 
+	cmd = "python \"" + __dirname + path.sep + "lib" + path.sep +  "httpRequests.py\" \"" + jsonReq +"\""
+	if (debug) console.log ("  * Command : " +cmd)
+    retour = shelljs.exec(cmd, {silent:true});
   } catch (err) {
     console.error("  * Error sending http request...");
     console.error(err);

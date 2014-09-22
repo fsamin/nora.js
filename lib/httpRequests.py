@@ -10,13 +10,13 @@ def zeroArgs(_args):
     print("You need at least one arguments !")
 
 def jsonRequest(_args):
-    jsonArg = json.loads(_args[1])
+    jsonArg = json.loads(_args[1].replace("'","\""))
     verifyArgs(jsonArg)
     resp = sendHttpRequest(jsonArg)
     return resp
 
 def fileInputRequest(_args):
-    jsonArg = json.loads(_args[1])
+    jsonArg = json.loads(_args[1].replace("'","\""))
     verifyArgs(jsonArg)
     filePath = _args[2]
     jsonArg["data"] = open(filePath, 'r').read()
@@ -24,7 +24,7 @@ def fileInputRequest(_args):
     return resp
 
 def fileOutputRequest(_args):
-    jsonArg = json.loads(_args[1])
+    jsonArg = json.loads(_args[1].replace("'","\""))
     verifyArgs(jsonArg)
     inputFilePath = _args[2]
     jsonArg["data"] = open(inputFilePath, 'r').read()
@@ -32,7 +32,7 @@ def fileOutputRequest(_args):
 
     outputFilePath = _args[3]
     with open(outputFilePath, "w") as response:
-        response.write(resp.text.encode('utf-8'))
+        response.write(resp.text)
 
     return resp
 
@@ -47,10 +47,8 @@ def verifyArgs(_args):
         protocol = _args.get("protocol")
         method = _args.get("method")
         required = [host,port,path,protocol,method]
-        required_url = [url,method]
-        found = filter(None,required)
-        found_url = filter(None,required_url)
-        valid = (len(required) == len(found))  or  (len(required_url) == len(found_url))
+        required_url = [url,method]		
+        valid = (None in required)  or  (None in required_url)
     else :
         valid = False
     if not valid:
@@ -94,8 +92,8 @@ if nbArgs > 4 :
     print("usages : python httpRequests.py json [inputFilePath, outputFilePath]")
 else :
     try:
-        res = options[nbArgs](sys.argv)
-        output = { 'code' : res.status_code, 'text' : res.text}
+    res = options[nbArgs](sys.argv)
+    output = { 'code' : res.status_code, 'text' : res.text}
     except:
         output = { 'code' : "unknown", 'text' : "Unexpected error : " + str(sys.exc_info()[0])}
     sys.stdout.write(json.dumps(output))
