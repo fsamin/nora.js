@@ -1,6 +1,5 @@
 var fs = require('fs-extra');
 var path = require('path');
-var console = require('better-console');
 var pd = require('pretty-data').pd;
 var setProperties = require(__dirname + path.sep + "request-valuer.js", "utf8");
 var shelljs = require('shelljs');
@@ -15,7 +14,7 @@ var restSender = function doStepRestRequest(runningTestStep) {
     var properties = runningTestStep.properties;
     var debug = runningTestStep.debug;
 
-    console.log("* " + teststep.stepID + " - " + teststep.stepName);
+    runningTestStep.console.log("* " + teststep.stepID + " - " + teststep.stepName);
 
     if (teststep.stepOptions.method == null ||
         ((teststep.stepOptions.protocol == null ||
@@ -26,15 +25,15 @@ var restSender = function doStepRestRequest(runningTestStep) {
         teststep.stepOptions.responseID == null ||
         teststep.stepOptions.responseExtension == null
     ) {
-        console.error("Error parsing " + teststep.stepID + " options.\n method, (protocol, host, port, path) or url, responseID, responseExtension are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
-        console.dir(teststep);
+        runningTestStep.console.error("Error parsing " + teststep.stepID + " options.\n method, (protocol, host, port, path) or url, responseID, responseExtension are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+        runningTestStep.console.dir(teststep);
         throw new Error("Malformated sendRequest test step");
     }
 
     if (teststep.stepOptions.requestID && teststep.stepOptions.requestExtension) {
         var requestFilePath = runDir + path.sep + teststep.stepOptions.requestID + teststep.stepOptions.requestExtension;
         if (!fs.existsSync(requestFilePath)) {
-            console.error("  * Cannot find input file %j", requestFilePath);
+            runningTestStep.console.error("  * Cannot find input file %j", requestFilePath);
             return "Failed";
         }
         var data = fs.readFileSync(requestFilePath, "utf8");
@@ -66,40 +65,40 @@ var restSender = function doStepRestRequest(runningTestStep) {
     };
 
     if (teststep.stepOptions.url) {
-        req['url'] = setProperties(teststep.stepOptions.url, namespaces, properties, debug, runDir);
-        console.log("  * Sending request to " + setProperties(teststep.stepOptions.url, namespaces, properties, debug, runDir));
+        req['url'] = setProperties(runningTestStep, teststep.stepOptions.url, namespaces, properties, debug, runDir);
+        runningTestStep.console.log("  * Sending request to " + setProperties(teststep.stepOptions.url, namespaces, properties, debug, runDir));
     } else {
-        req['host'] = setProperties(teststep.stepOptions.host, namespaces, properties, debug, runDir);
-        req['port'] = setProperties(teststep.stepOptions.port, namespaces, properties, debug, runDir);
-        req['path'] = setProperties(teststep.stepOptions.path, namespaces, properties, debug, runDir);
-        req['protocol'] = setProperties(teststep.stepOptions.protocol, namespaces, properties, debug, runDir);
-        console.log("  * Sending request to " + setProperties(teststep.stepOptions.protocol, namespaces, properties, debug, runDir) + "://" + setProperties(teststep.stepOptions.host, namespaces, properties, debug, runDir) + ":" + setProperties(teststep.stepOptions.port, namespaces, properties, debug, runDir) + setProperties(teststep.stepOptions.path, namespaces, properties, debug, runDir));
+        req['host'] = setProperties(runningTestStep, teststep.stepOptions.host, namespaces, properties, debug, runDir);
+        req['port'] = setProperties(runningTestStep, teststep.stepOptions.port, namespaces, properties, debug, runDir);
+        req['path'] = setProperties(runningTestStep, teststep.stepOptions.path, namespaces, properties, debug, runDir);
+        req['protocol'] = setProperties(runningTestStep, teststep.stepOptions.protocol, namespaces, properties, debug, runDir);
+        runningTestStep.console.log("  * Sending request to " + setProperties(teststep.stepOptions.protocol, namespaces, properties, debug, runDir) + "://" + setProperties(teststep.stepOptions.host, namespaces, properties, debug, runDir) + ":" + setProperties(teststep.stepOptions.port, namespaces, properties, debug, runDir) + setProperties(teststep.stepOptions.path, namespaces, properties, debug, runDir));
     }
 
     if (proxies) {
-        console.log("  * Using proxies : " + JSON.stringify(proxies));
+        runningTestStep.console.log("  * Using proxies : " + JSON.stringify(proxies));
     }
     if (timeout) {
-        console.log("  * With timeout : " + timeout + "s");
+        runningTestStep.console.log("  * With timeout : " + timeout + "s");
     }
     try {
         jsonReq = JSON.stringify(req).replace(/\"/g, "'")
         cmd = "python \"" + __dirname + path.sep + "lib" + path.sep + "httpRequests.py\" \"" + jsonReq + "\""
-        if (debug) console.log("  * Command : " + cmd)
+        if (debug) runningTestStep.console.log("  * Command : " + cmd)
         retour = shelljs.exec(cmd, {silent: true});
     } catch (err) {
-        console.error("  * Error sending http request...");
-        console.error(err);
+        runningTestStep.console.error("  * Error sending http request...");
+        runningTestStep.console.error(err);
         return "Failed";
     }
 
     retour = JSON.parse(retour.output);
 
     fs.writeFileSync(responseFilePath, retour.text, {"encoding": "utf8"});
-    console.log("  * HTTP-Status : " + retour.code);
+    runningTestStep.console.log("  * HTTP-Status : " + retour.code);
 
     if (retour.code != 200) {
-        console.error("   * Error " + retour.code + " " + retour.text + " send by server.");
+        runningTestStep.console.error("   * Error " + retour.code + " " + retour.text + " send by server.");
         return "Failed";
     }
 

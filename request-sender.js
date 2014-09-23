@@ -1,6 +1,5 @@
 var fs = require('fs-extra');
 var path = require('path');
-var console = require('better-console');
 var pd = require('pretty-data').pd;
 var setXMLProperties = require(__dirname + path.sep + "request-valuer.js", "utf8");
 var shelljs = require('shelljs');
@@ -15,7 +14,7 @@ var sender = function doStepSendRequest(runningTestStep) {
     var properties = runningTestStep.properties;
     var debug = runningTestStep.debug;
 
-    console.log("* " + teststep.stepID + " - " + teststep.stepName);
+    runningTestStep.console.log("* " + teststep.stepID + " - " + teststep.stepName);
 
     if (teststep.stepOptions.requestID == null ||
         ((teststep.stepOptions.protocol == null ||
@@ -26,8 +25,8 @@ var sender = function doStepSendRequest(runningTestStep) {
         teststep.stepOptions.SOAPAction == null ||
         teststep.stepOptions.responseID == null
     ) {
-        console.error("Error parsing " + teststep.stepID + " options.\n requestID, protocol, host, port, path and SOAPAction and responseID are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
-        console.dir(teststep);
+        runningTestStep.console.error("Error parsing " + teststep.stepID + " options.\n requestID, protocol, host, port, path and SOAPAction and responseID are mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+        runningTestStep.console.dir(teststep);
         throw new Error("Malformated sendRequest test step");
     }
 
@@ -36,13 +35,13 @@ var sender = function doStepSendRequest(runningTestStep) {
     var responseFilePath = runDir + path.sep + teststep.stepOptions.responseID + ".xml";
 
     if (!fs.existsSync(requestFilePath)) {
-        console.error("  * Cannot find XML %j", requestFilePath);
+        runningTestStep.console.error("  * Cannot find XML %j", requestFilePath);
         return "Failed";
     }
 
     var requestFile = fs.readFileSync(requestFilePath, "utf8");
     var getHeaders = function(stepOptions, requestFile) {
-        var soapAction = setXMLProperties(teststep.stepOptions.SOAPAction, namespaces, properties, debug, runDir);
+        var soapAction = setXMLProperties(runningTestStep, teststep.stepOptions.SOAPAction, namespaces, properties, debug, runDir);
         var contentType = 'text/xml; charset="utf-8"';
         return {
             'SOAPAction': soapAction,
@@ -74,38 +73,38 @@ var sender = function doStepSendRequest(runningTestStep) {
     };
 
     if (teststep.stepOptions.url) {
-        req['url'] = setXMLProperties(teststep.stepOptions.url, namespaces, properties, debug, runDir);
-        console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.url, namespaces, properties, debug, runDir));
+        req['url'] = setXMLProperties(runningTestStep, teststep.stepOptions.url, namespaces, properties, debug, runDir);
+        runningTestStep.console.log("  * Sending request to " + setXMLProperties(runningTestStep, teststep.stepOptions.url, namespaces, properties, debug, runDir));
     } else {
-        req['host'] = setXMLProperties(teststep.stepOptions.host, namespaces, properties, debug, runDir);
-        req['port'] = setXMLProperties(teststep.stepOptions.port, namespaces, properties, debug, runDir);
-        req['path'] = setXMLProperties(teststep.stepOptions.path, namespaces, properties, debug, runDir);
-        req['protocol'] = setXMLProperties(teststep.stepOptions.protocol, namespaces, properties, debug, runDir);
-        console.log("  * Sending request to " + setXMLProperties(teststep.stepOptions.protocol, namespaces, properties, debug, runDir) + "://" + setXMLProperties(teststep.stepOptions.host, namespaces, properties, debug, runDir) + ":" + setXMLProperties(teststep.stepOptions.port, namespaces, properties, debug, runDir) + setXMLProperties(teststep.stepOptions.path, namespaces, properties, debug, runDir));
+        req['host'] = setXMLProperties(runningTestStep, teststep.stepOptions.host, namespaces, properties, debug, runDir);
+        req['port'] = setXMLProperties(runningTestStep, teststep.stepOptions.port, namespaces, properties, debug, runDir);
+        req['path'] = setXMLProperties(runningTestStep, teststep.stepOptions.path, namespaces, properties, debug, runDir);
+        req['protocol'] = setXMLProperties(runningTestStep, teststep.stepOptions.protocol, namespaces, properties, debug, runDir);
+        runningTestStep.console.log("  * Sending request to " + setXMLProperties(runningTestStep, teststep.stepOptions.protocol, namespaces, properties, debug, runDir) + "://" + setXMLProperties(runningTestStep, teststep.stepOptions.host, namespaces, properties, debug, runDir) + ":" + setXMLProperties(runningTestStep, teststep.stepOptions.port, namespaces, properties, debug, runDir) + setXMLProperties(runningTestStep, teststep.stepOptions.path, namespaces, properties, debug, runDir));
     }
 
     if (proxies) {
-        console.log("  * Using proxies : " + JSON.stringify(proxies));
+        runningTestStep.console.log("  * Using proxies : " + JSON.stringify(proxies));
     }
     if (timeout) {
-        console.log("  * With timeout : " + timeout + "s");
+        runningTestStep.console.log("  * With timeout : " + timeout + "s");
     }
     try {
 		jsonReq = JSON.stringify(req).replace(/\"/g,"'") 
 		cmd = "python \"" + __dirname + path.sep + "lib" + path.sep + "httpRequests.py\" \"" + jsonReq + "\" \"" + requestFilePath + "\" \"" + responseFilePath + "\""
-		if (debug) console.log ("  * Command : " +cmd)
+		if (debug) runningTestStep.console.log ("  * Command : " +cmd)
         retour = shelljs.exec(cmd, {silent: true});
     } catch (err) {
-        console.error("  * Error sending http request...");
-        console.error(err);
+        runningTestStep.console.error("  * Error sending http request...");
+        runningTestStep.console.error(err);
         return "Failed";
     }
 
     retour = JSON.parse(retour.output);
-    console.log("  * HTTP-Status : " + retour.code);
+    runningTestStep.console.log("  * HTTP-Status : " + retour.code);
 
     if (retour.code != 200) {
-        console.error("   * Error " + retour.code + " " + retour.text + " send by server.");
+        runningTestStep.console.error("   * Error " + retour.code + " " + retour.text + " send by server.");
         return "Failed";
     }
 

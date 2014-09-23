@@ -1,6 +1,5 @@
 var fs = require('fs-extra');
 var path = require('path');
-var console = require('better-console');
 var dom = require('xmldom').DOMParser;
 var xpath = require('xpath');
 var jsonPath = require('JSONPath');
@@ -9,7 +8,7 @@ var jsonPath = require('JSONPath');
   Fonctions utilitaires
   */
 
-var valuer = function setProperties(stream, namespaces, properties, debug, runDir) {
+var valuer = function setProperties(runningTestStep, stream, namespaces, properties, debug, runDir) {
   if (stream == null) {
     return stream;
   }
@@ -37,17 +36,17 @@ var valuer = function setProperties(stream, namespaces, properties, debug, runDi
   if (arrXpathMatches) {
     arrXpathMatches.forEach(function(match){
       var xmlID = match.trim().replace(/\$\{/, "").replace(/:xml:.*?\}/, "");
-      if (debug) console.log("    * Found reference to " + xmlID + ", loading...");
+      if (debug) runningTestStep.console.log("    * Found reference to " + xmlID + ", loading...");
       var xmlFilePath = runDir + path.sep + xmlID + ".xml";
       var xmlFile = fs.readFileSync(xmlFilePath, "utf8");
       var xpathStr = match.trim().replace(/\$\{(.*?):xml:/, "").replace(/\}/, "");
-      if (debug) console.log("    * Found xpath " + xpathStr + ", loading...");
+      if (debug) runningTestStep.console.log("    * Found xpath " + xpathStr + ", loading...");
       var doc = new dom().parseFromString(xmlFile);
       var select = xpath.useNamespaces(namespaces);
       var nodes = select(xpathStr, doc);
       var matchingValue = nodes[0].firstChild.nodeValue;
-      if (debug) console.log("    * Found matching values : " + matchingValue);
-      if (debug) console.log("    * Replacing " + match + " by " + matchingValue);
+      if (debug) runningTestStep.console.log("    * Found matching values : " + matchingValue);
+      if (debug) runningTestStep.console.log("    * Replacing " + match + " by " + matchingValue);
       stream = stream.replace(match, matchingValue);
     });
   }
@@ -59,19 +58,19 @@ var valuer = function setProperties(stream, namespaces, properties, debug, runDi
   if (arrJsonMatches) {
     arrJsonMatches.forEach(function(match){
         var jsonID = match.trim().replace(/\$\{/, "").replace(/:json:.*?\}/, "");
-        if (debug) console.log("    * Found reference to " + jsonID + ", loading...");
+        if (debug) runningTestStep.console.log("    * Found reference to " + jsonID + ", loading...");
         var jsonFilePath = runDir + path.sep + jsonID + ".json";
         var jsonFile = fs.readFileSync(jsonFilePath, "utf8");
         var jsonMatchStr = match.trim().replace(/\$\{(.*?):json:/, "").replace(/\}/, "");
-        if (debug) console.log("    * Found json " + jsonMatchStr + ", loading...");
+        if (debug) runningTestStep.console.log("    * Found json " + jsonMatchStr + ", loading...");
         var jsonObject = JSON.parse(jsonFile);
         var matchingValue = jsonPath.eval(jsonObject,jsonMatchStr);
         if (matchingValue) {
-            if (debug) console.log("    * Found matching values : " + matchingValue);
-            if (debug) console.log("    * Replacing " + match + " by " + matchingValue);
+            if (debug) runningTestStep.console.log("    * Found matching values : " + matchingValue);
+            if (debug) runningTestStep.console.log("    * Replacing " + match + " by " + matchingValue);
             stream = stream.replace(match, matchingValue);
         } else {
-            if (debug) console.log("    * Matching values  not found : " + jsonMatchStr);
+            if (debug) runningTestStep.console.log("    * Matching values  not found : " + jsonMatchStr);
 
         }
 
@@ -89,7 +88,7 @@ var valuer = function setProperties(stream, namespaces, properties, debug, runDi
       }
     });
     if (found) {
-      if (debug) console.log("  * Replacing " + property.propertyName + " by " + property.propertyValue);
+      if (debug) runningTestStep.console.log("  * Replacing " + property.propertyName + " by " + property.propertyValue);
       stream = stream.replace(match, property.propertyValue);
     }
   });

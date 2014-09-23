@@ -8,6 +8,7 @@ var shelljs = require('shelljs');
 var pd = require('pretty-data').pd;
 var jsonxml = require('jsontoxml');
 var slugify = require('slugify');
+var util = require('util');
 
 program
     .version('0.0.1')
@@ -70,8 +71,6 @@ function doTestStep(teststep, index, testcase) {
         teststep: teststep,
         properties: properties,
         status: "No Run",
-        failureMessage: null,
-        stdout: null,
         time: null,
         getXReport: function() {
             if (this.status == "Passed") {
@@ -86,11 +85,51 @@ function doTestStep(teststep, index, testcase) {
                         name:'testcase',
                         attrs:'name="' + this.teststep.stepName + '" classname="' + slugify(className  + '.' + this.teststep.stepName) + '", time= "' + this.time + '"',
                         children:[
-                            {name:'failure',text:this.stdout,attrs:{message:this.failureMessage}}
+                            {name:'failure',text:this.console.stdout,attrs:{message:this.console.failureMessage}}
                         ]
                     }
                 ];
                 return jsonxml(report);
+            }
+        },
+        console:{
+            failureMessage: null,
+            stdout: null,
+            log:function() {
+                if (!this.stdout) this.stdout = "";
+                if (arguments.length > 1) {
+                    this.stdout += util.format(arguments) + "\n";
+                    console.log(util.format(arguments));
+                } else {
+                    this.stdout += util.format(arguments[0]) + "\n";
+                    console.log(util.format(arguments[0]));
+                }
+            },
+            dir: function() {
+                if (!this.stdout) this.stdout = "";
+                this.stdout += util.inspect(arguments) + "\n";
+                console.dir(arguments);
+            },
+            info:function() {
+                if (!this.stdout) this.stdout = "";
+                 if (arguments.length > 1) {
+                    this.stdout += util.format(arguments) + "\n";
+                    console.info(util.format(arguments));
+                } else {
+                    this.stdout += util.format(arguments[0]) + "\n";
+                    console.info(util.format(arguments[0]));
+                }
+            },
+            error:function() {
+                if (!this.stdout) this.stdout = "";
+                 if (arguments.length > 1) {
+                    this.stdout += util.format(arguments) + "\n";
+                    console.error(util.format(arguments));
+                } else {
+                    this.stdout += util.format(arguments[0]) + "\n";
+                    console.error(util.format(arguments[0]));
+                }
+                this.failureMessage = util.format(arguments[0]);
             }
         }
     };

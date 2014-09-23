@@ -1,6 +1,5 @@
 var shelljs = require('shelljs');
 var path = require('path');
-var console = require('better-console');
 
 /**
  Traitement de vérification de trames
@@ -11,16 +10,16 @@ var waitNext = function doStepCheckJson(runningTestStep) {
     var teststep = runningTestStep.teststep;
     var debug = runningTestStep.debug;
 
-    console.log("* " + teststep.stepID + " - " + teststep.stepName);
+    runningTestStep.console.log("* " + teststep.stepID + " - " + teststep.stepName);
 
     if (teststep.stepOptions.waitBeforeNextStep == null) {
-        console.error("Error parsing " + teststep.stepID + " option.\n waitBeforeNextStep is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
-        console.dir(teststep);
+        runningTestStep.console.error("Error parsing " + teststep.stepID + " option.\n waitBeforeNextStep is mandatory.\nPlease correct your json testcase before relaunch nora.js.");
+        runningTestStep.console.dir(teststep);
         throw new Error("Malformated waitNext test step");
     }
-    console.log("  * Wait : " + teststep.stepOptions.waitBeforeNextStep + "s");
+    runningTestStep.console.log("  * Wait : " + teststep.stepOptions.waitBeforeNextStep + "s");
     var cmd = "python \"" + __dirname + path.sep + "lib" + path.sep +  "sleep.py\" " + teststep.stepOptions.waitBeforeNextStep;
-    if (debug) console.log("  * Command : " +cmd);
+    if (debug) runningTestStep.console.log("  * Command : " +cmd);
     shelljs.exec(cmd);
 
     return "Passed";
