@@ -14,9 +14,11 @@ program
     .version('0.0.1')
     .option('-d, --debug', 'debug mode')
     .option('-t, --testcase [filename]', 'set the testcase', 'tests/getWeatherTest/getWeatherTestCase.json')
+	.option('-r, --report [filename]','set the file report','reports/report.xml')
     .parse(process.argv);
 
 var dir = path.resolve(path.dirname(program.testcase));
+var dirReport = path.resolve(path.dirname(program.report));
 
 var testcase = JSON.parse(fs.readFileSync(program.testcase, 'utf8'));
 var className = testcase.package + "." + testcase.name
@@ -25,6 +27,7 @@ var executionReport = [];
 
 var runDir = path.join(dir, "runs" + path.sep + testcase.package + path.sep + testcase.name  + path.sep + moment().format("YYYYMMDD-HHmmss"));
 fs.mkdirsSync(runDir);
+fs.mkdirSync(dirReport);
 
 
 
@@ -40,11 +43,13 @@ var restSender = require(__dirname + path.sep + "rest-sender.js", "utf8");
 var xmlChecker = require(__dirname + path.sep + "payload-checker.js", "utf8");
 var jsonChecker = require(__dirname + path.sep + "json-checker.js", "utf8");
 var waitNext = require(__dirname + path.sep + "wait-next.js", "utf8");
+var reportMaker = require(__dirname + path.sep + "report-generator.js", "utf8");
 
 testcase.teststeps.forEach(doTestStep);
 
 var t = new table();
 
+var nbKo=0;
 executionReport.forEach(function (res) {
     t.cell('Id', res.index);
     t.cell('Description', res.teststep.stepName);
@@ -52,7 +57,7 @@ executionReport.forEach(function (res) {
     t.cell('Result', res.status, printResult);
     t.newRow();
 });
-
+reportMaker(executionReport,program.testcase,program.report);
 console.info("# TestCase %s.%s Report", testcase.package, testcase.name);
 console.log(t.toString());
 
@@ -72,24 +77,24 @@ function doTestStep(teststep, index, testcase) {
         properties: properties,
         status: "No Run",
         time: null,
-        getXReport: function() {
+        getJsonReport: function() {
             if (this.status == "Passed") {
                 var report = [{
                     name:'testcase',
-                    attrs:'name="' + this.teststep.stepName + '" classname="' + slugify(className  + '.' + this.teststep.stepName) + '", time= "' + this.time + '"'
+                    attrs:'name="' + this.teststep.stepName + '" classname="' + slugify(className  + '.' + this.teststep.stepName) + '" time= "' + this.time + '"'
                 }];
-                return jsonxml(report);
+                return report;
             } else if (this.status == "Failed") {
                  var report = [
                     {
                         name:'testcase',
-                        attrs:'name="' + this.teststep.stepName + '" classname="' + slugify(className  + '.' + this.teststep.stepName) + '", time= "' + this.time + '"',
+                        attrs:'name="' + this.teststep.stepName + '" classname="' + slugify(className  + '.' + this.teststep.stepName) + '" time= "' + this.time + '"',
                         children:[
                             {name:'failure',text:this.console.stdout,attrs:{message:this.console.failureMessage}}
                         ]
                     }
                 ];
-                return jsonxml(report);
+                return report;
             }
         },
         console:{
