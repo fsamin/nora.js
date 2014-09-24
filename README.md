@@ -1,20 +1,20 @@
-nora.js
-=======
+#nora.js#
 
-SOAP Web Services Non-Regression Automation with Javascript
+SOAP and REST Web Services Non-Regression Automation with Javascript
 
 ## Depencencies
-python
-
-npm
-
-node.js
+ - python
+ - npm
+ - node.js
 
 ## Install
-npm install
+$ npm install
 
 ## Run the getWeather sample testcase
-node nora.js
+$ npm test
+
+## Run my own testcase
+$ TESTCASE=./<testcase>.json npm start
 
 ## Documentation ##
-[Here](./docs/index.md "here")
+[How to write my own testcase](./docs/index.md)
