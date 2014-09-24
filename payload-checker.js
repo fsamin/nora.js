@@ -104,11 +104,11 @@ var checker = function doStepCheckXML(runningTestStep) {
         result  = result && tmpResult;
         
         if (!tmpResult) {
-          runningTestStep.console.error("  * " + myAssert.type  + " - " + myAssert.value + " : " + tmpResult);
+          runningTestStep.console.error("  * " + myAssert.type  + " - " + myAssert.xpath + " : " + tmpResult);
           console.dir(xmlFile);
         }
         else 
-          runningTestStep.console.log("  * " + myAssert.type  + " - " + myAssert.value + " : " + tmpResult);
+          runningTestStep.console.log("  * " + myAssert.type  + " - " + myAssert.xpath + " : " + tmpResult);
 
         break;
       default:

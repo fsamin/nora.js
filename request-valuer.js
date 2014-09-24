@@ -35,6 +35,8 @@ var valuer = function setProperties(runningTestStep, stream, namespaces, propert
 
   if (arrXpathMatches) {
     arrXpathMatches.forEach(function(match){
+      if (debug) runningTestStep.console.log("    * " + match);
+
       var xmlID = match.trim().replace(/\$\{/, "").replace(/:xml:.*?\}/, "");
       if (debug) runningTestStep.console.log("    * Found reference to " + xmlID + ", loading...");
       var xmlFilePath = runDir + path.sep + xmlID + ".xml";
@@ -44,6 +46,10 @@ var valuer = function setProperties(runningTestStep, stream, namespaces, propert
       var doc = new dom().parseFromString(xmlFile);
       var select = xpath.useNamespaces(namespaces);
       var nodes = select(xpathStr, doc);
+      if (!nodes[0].firstChild) {
+        runningTestStep.console.error("    * Property " + match + " unknown.");
+        throw new Error("Property unknown");
+      }
       var matchingValue = nodes[0].firstChild.nodeValue;
       if (debug) runningTestStep.console.log("    * Found matching values : " + matchingValue);
       if (debug) runningTestStep.console.log("    * Replacing " + match + " by " + matchingValue);

@@ -56,8 +56,8 @@ var restSender = function doStepRestRequest(runningTestStep) {
 
     var req = {
         'method': teststep.stepOptions.method,
-        'headers': setProperties(teststep.stepOptions.headers, namespaces, properties, debug, runDir),
-        'params': setProperties(teststep.stepOptions.params, namespaces, properties, debug, runDir),
+        'headers': setProperties(runningTestStep, teststep.stepOptions.headers, namespaces, properties, debug, runDir),
+        'params': setProperties(runningTestStep, teststep.stepOptions.params, namespaces, properties, debug, runDir),
         'auth': auth,
         'proxies': proxies,
         'timeout': timeout,
@@ -66,13 +66,13 @@ var restSender = function doStepRestRequest(runningTestStep) {
 
     if (teststep.stepOptions.url) {
         req['url'] = setProperties(runningTestStep, teststep.stepOptions.url, namespaces, properties, debug, runDir);
-        runningTestStep.console.log("  * Sending request to " + setProperties(teststep.stepOptions.url, namespaces, properties, debug, runDir));
+        runningTestStep.console.log("  * Sending request to " + setProperties(runningTestStep, teststep.stepOptions.url, namespaces, properties, debug, runDir));
     } else {
         req['host'] = setProperties(runningTestStep, teststep.stepOptions.host, namespaces, properties, debug, runDir);
         req['port'] = setProperties(runningTestStep, teststep.stepOptions.port, namespaces, properties, debug, runDir);
         req['path'] = setProperties(runningTestStep, teststep.stepOptions.path, namespaces, properties, debug, runDir);
         req['protocol'] = setProperties(runningTestStep, teststep.stepOptions.protocol, namespaces, properties, debug, runDir);
-        runningTestStep.console.log("  * Sending request to " + setProperties(teststep.stepOptions.protocol, namespaces, properties, debug, runDir) + "://" + setProperties(teststep.stepOptions.host, namespaces, properties, debug, runDir) + ":" + setProperties(teststep.stepOptions.port, namespaces, properties, debug, runDir) + setProperties(teststep.stepOptions.path, namespaces, properties, debug, runDir));
+        runningTestStep.console.log("  * Sending request to " + setProperties(runningTestStep, teststep.stepOptions.protocol, namespaces, properties, debug, runDir) + "://" + setProperties(teststep.stepOptions.host, namespaces, properties, debug, runDir) + ":" + setProperties(teststep.stepOptions.port, namespaces, properties, debug, runDir) + setProperties(teststep.stepOptions.path, namespaces, properties, debug, runDir));
     }
 
     if (proxies) {
