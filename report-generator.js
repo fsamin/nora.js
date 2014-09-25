@@ -1,11 +1,12 @@
 var jsonxml = require('jsontoxml');
-var fs = require("fs");
+var fs = require('fs-extra');
+var path = require('path');
 
 
 /**
   Génération du report
   */
-var report = function generateReport(executionReport,testcase,fileReport) {
+var report = function generateReport(executionReport,testcase) {
 	console.log("Génération du rapport pour le testcase: "+testcase);
 	
 	// calcul du nombre de KO
@@ -28,7 +29,14 @@ var report = function generateReport(executionReport,testcase,fileReport) {
 		report[0].children.push(res.getJsonReport()[0]);
 	 });	
 	
-	fs.writeFileSync(fileReport, jsonxml(report), "UTF-8");
+	// Ecriture du fichier dans le repertoire de sortie
+	var runDir = executionReport[0].runDir;
+	fs.writeFileSync(runDir  + path.sep + "report.xml", jsonxml(report), "utf8", function(err) {
+		if(err) {
+			runningTestStep.console.error(err);
+	        throw err;
+	    } 
+	}); 
 }
 
 module.exports = report;
