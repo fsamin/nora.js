@@ -49,7 +49,6 @@ testcase.teststeps.forEach(doTestStep);
 
 var t = new table();
 
-var nbKo=0;
 executionReport.forEach(function (res) {
     t.cell('Id', res.index);
     t.cell('Description', res.teststep.stepName);
