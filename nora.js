@@ -43,6 +43,7 @@ var restSender = require(__dirname + path.sep + "rest-sender.js", "utf8");
 var xmlChecker = require(__dirname + path.sep + "payload-checker.js", "utf8");
 var jsonChecker = require(__dirname + path.sep + "json-checker.js", "utf8");
 var waitNext = require(__dirname + path.sep + "wait-next.js", "utf8");
+var reportMaker = require(__dirname + path.sep + "report-generator.js", "utf8");
 
 testcase.teststeps.forEach(doTestStep);
 
@@ -55,7 +56,7 @@ executionReport.forEach(function (res) {
     t.cell('Result', res.status, printResult);
     t.newRow();
 });
-
+reportMaker(executionReport,program.testcase);
 console.info("# TestCase %s.%s Report", testcase.package, testcase.name);
 console.log(t.toString());
 
@@ -75,24 +76,24 @@ function doTestStep(teststep, index, testcase) {
         properties: properties,
         status: "No Run",
         time: null,
-        getXReport: function() {
+        getJsonReport: function() {
             if (this.status == "Passed") {
                 var report = [{
                     name:'testcase',
-                    attrs:'name="' + this.teststep.stepName + '" classname="' + slugify(className  + '.' + this.teststep.stepName) + '", time= "' + this.time + '"'
+                    attrs:'name="' + this.teststep.stepName + '" classname="' + slugify(className  + '.' + this.teststep.stepName) + '" time= "' + this.time + '"'
                 }];
-                return jsonxml(report);
+                return report;
             } else if (this.status == "Failed") {
                  var report = [
                     {
                         name:'testcase',
-                        attrs:'name="' + this.teststep.stepName + '" classname="' + slugify(className  + '.' + this.teststep.stepName) + '", time= "' + this.time + '"',
+                        attrs:'name="' + this.teststep.stepName + '" classname="' + slugify(className  + '.' + this.teststep.stepName) + '" time= "' + this.time + '"',
                         children:[
                             {name:'failure',text:this.console.stdout,attrs:{message:this.console.failureMessage}}
                         ]
                     }
                 ];
-                return jsonxml(report);
+                return report;
             }
         },
         console:{
@@ -193,6 +194,3 @@ function doTestStep(teststep, index, testcase) {
     if (program.debug) console.log(runningTestStep.getXReport(className));
     executionReport.push(runningTestStep);
 }
-
-
-
