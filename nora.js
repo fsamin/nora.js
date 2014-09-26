@@ -14,6 +14,8 @@ program
     .version('0.0.1')
     .option('-d, --debug', 'debug mode')
     .option('-t, --testcase [filename]', 'set the testcase', 'tests/getWeatherTest/getWeatherTestCase.json')
+    .option('-r, --rundir [directory]', 'set the run directory', undefined)
+    .option('-x, --xreport', 'export report in the run directory')
     .parse(process.argv);
 
 var dir = path.resolve(path.dirname(program.testcase));
@@ -22,11 +24,12 @@ var testcase = JSON.parse(fs.readFileSync(program.testcase, 'utf8'));
 var className = testcase.package + "." + testcase.name
 var properties = [];
 var executionReport = [];
-
-var runDir = path.join(dir, "runs" + path.sep + testcase.package + path.sep + testcase.name  + path.sep + moment().format("YYYYMMDD-HHmmss"));
+var runDir
+if (!program.rundir)
+    runDir = path.join(dir, "runs" + path.sep + testcase.package + path.sep + testcase.name  + path.sep + moment().format("YYYYMMDD-HHmmss"));
+else
+    runDir = program.rundir;
 fs.mkdirsSync(runDir);
-
-
 
 console.info("# Loading %s.%s", testcase.package, testcase.name);
 console.info("# Running in %s", runDir);
