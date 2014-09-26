@@ -56,7 +56,8 @@ executionReport.forEach(function (res) {
     t.cell('Result', res.status, printResult);
     t.newRow();
 });
-reportMaker(executionReport,program.testcase);
+
+if (program.xreport) reportMaker(executionReport,program.testcase);
 console.info("# TestCase %s.%s Report", testcase.package, testcase.name);
 console.log(t.toString());
 
