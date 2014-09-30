@@ -10,6 +10,9 @@ var jsonxml = require('jsontoxml');
 var slugify = require('slugify');
 var util = require('util');
 
+var runner = require('./lib/runner');
+var printResult = require("./lib/status-printer");
+
 program
     .version('0.0.1')
     .option('-d, --debug', 'debug mode')
@@ -34,16 +37,7 @@ fs.mkdirsSync(runDir);
 console.info("# Loading %s.%s", testcase.package, testcase.name);
 console.info("# Running in %s", runDir);
 
-var setXMLProperties = require(__dirname + path.sep + "request-valuer.js", "utf8");
-var printResult = require(__dirname + path.sep + "status-printer.js", "utf8");
-var loader = require(__dirname + path.sep + "loader.js", "utf8");
-var requestMaker = require(__dirname + path.sep + "request-generator.js", "utf8");
-var requestSender = require(__dirname + path.sep + "request-sender.js", "utf8");
-var restSender = require(__dirname + path.sep + "rest-sender.js", "utf8");
-var xmlChecker = require(__dirname + path.sep + "payload-checker.js", "utf8");
-var jsonChecker = require(__dirname + path.sep + "json-checker.js", "utf8");
-var waitNext = require(__dirname + path.sep + "wait-next.js", "utf8");
-var reportMaker = require(__dirname + path.sep + "report-generator.js", "utf8");
+
 
 testcase.teststeps.forEach(doTestStep);
 
@@ -139,59 +133,8 @@ function doTestStep(teststep, index, testcase) {
         }
     };
 
-    var status;
-    var nbAttempt = 1;
-    var retry = true;
-    var startChrono = new moment();
-    while (status != "passed" && retry) {
-        switch (teststep.stepAction) {
-            case "loadProperties" :
-                status = loader(runningTestStep);
-                if (program.debug) console.dir(properties);
-                break;
-            case "makeRequest" :
-                status = requestMaker(runningTestStep);
-                break;
-            case "sendRequest" :
-                status = requestSender(runningTestStep);
-                break;
-            case "sendRest" :
-                status = restSender(runningTestStep);
-                break;
-            case "checkXML" :
-                status = xmlChecker(runningTestStep);
-                break;
-            case "checkJSON" :
-                status = jsonChecker(runningTestStep);
-                break;
-            case "waitNext" :
-                status = waitNext(runningTestStep);
-                break;
-            default:
-                console.error("* Unrecognize stepAction %j", teststep.stepAction);
-                console.dir(teststep);
-                status = "Failed";
-        }
-        runningTestStep.status = status;
-        if (status != "Passed" && teststep.stepReplayOnFailure) {
-            nbAttempt++;
-            if (nbAttempt <= teststep.stepReplayOnFailure) {
-                console.warn(" * Last step is failed. Retry");
-                if (teststep.stepWaitBeforeReplay) {
-                    shelljs.exec("python " + __dirname + path.sep + "lib" + path.sep + "sleep.py " + teststep.stepWaitBeforeReplay);
-                }
-                retry = true;
-            } else {
-                retry = false;
-            }
-        } else {
-            retry = false;
-        }
-    }
-    var endChrono = new moment();
+   runner(runningTestStep, program.debug);
 
-    runningTestStep.result = status;
-    runningTestStep.time = endChrono.subtract(startChrono).millisecond();
-    if (program.debug) console.log(runningTestStep.getXReport(className));
+    if (program.debug) console.log(runningTestStep.getJsonReport(className));
     executionReport.push(runningTestStep);
 }
