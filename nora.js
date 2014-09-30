@@ -5,6 +5,7 @@ var table = require('easy-table');
 
 var noraRunner = require('./lib/nora-runner');
 var printResult = require("./lib/status-printer");
+var reportMaker = require("./lib/report-generator");
 
 program
     .version('0.0.1')
