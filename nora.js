@@ -90,7 +90,7 @@ function doTestStep(teststep, index, testcase) {
                         name:'testcase',
                         attrs:'name="' + this.teststep.stepName + '" classname="' + slugify(className  + '.' + this.teststep.stepName) + '" time= "' + this.time + '"',
                         children:[
-                            {name:'failure',text:this.console.stdout,attrs:{message:this.console.failureMessage}}
+                            {name:'failure',text:"<![CDATA["+this.console.stdout+"]]>",attrs:{message:(this.console.failureMessage).replace('<','#').replace('>','#')}}
                         ]
                     }
                 ];
