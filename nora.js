@@ -192,6 +192,6 @@ function doTestStep(teststep, index, testcase) {
 
     runningTestStep.result = status;
     runningTestStep.time = endChrono.subtract(startChrono).millisecond();
-    if (program.debug) console.log(runningTestStep.getXReport(className));
+    if (program.debug) console.log(runningTestStep.getJsonReport(className));
     executionReport.push(runningTestStep);
 }
