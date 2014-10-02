@@ -1,0 +1,14 @@
+{
+"name" : "getWeatherCalledTestCase",
+"package" : "tests",
+"teststeps":[
+	{
+		"stepName" :	"Wait",
+		"stepID" : "1",
+		"stepAction" : "waitNext",
+		"stepOptions" : {
+			"waitBeforeNextStep" : 5
+		}	
+	}
+	]
+}

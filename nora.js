@@ -20,9 +20,9 @@ var executionReport = [];
 noraRunner(program.testcase, program.rundir, program.debug, executionReport);
 
 var t = new table();
-executionReport.forEach(function (res) {
-    t.cell('Id', res.index);
-    t.cell('Description', res.teststep.stepName);
+executionReport.forEach(function (res, i) {
+    t.cell('Id', i);
+    t.cell('Description', "[" + res.index + "] " + res.teststep.stepName);
     t.cell('Time', res.time);
     t.cell('Result', res.status, printResult);
     t.newRow();

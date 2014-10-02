@@ -110,6 +110,13 @@
 				}
 			]
 		}
+	},{
+		"stepName" : "Test called testcase",
+		"stepID" : "7",
+		"stepAction" : "call",
+		"stepOptions" : {
+			"testcase" : "calledTestcase.json"
+		}
 	}
 ]
 }
