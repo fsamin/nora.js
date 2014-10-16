@@ -6,11 +6,14 @@
 		"stepName" :	"Load Properties",
 		"stepID" : "1",
 		"stepAction" : "loadProperties",
-		"stepOptions" : [{
-			"generator" : "zipcode.js"
+		"stepOptions" : [
+ 				{
+			"filename" : "zipcode.json"
+				},{
+			"generator" : "zipcode.js ${zip}"
 				}, {
 			"filename" : "getWeather.properties.json"
-				}]	
+				}]
 	},{
 		"stepName" : "Compute getWeather Request",
 		"stepID" : "2",

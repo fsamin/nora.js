@@ -1,5 +1,5 @@
-var generateProperties = function() {
-	return [{propertyName : "zipcode",  propertyValue : "77001"}];
+var generateProperties = function(args) {
+	return [{propertyName : "zipcode",  propertyValue : args[0]}];
 };
 
 module.exports = generateProperties;
