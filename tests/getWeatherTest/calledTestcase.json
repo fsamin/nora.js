@@ -9,6 +9,23 @@
 		"stepOptions" : {
 			"waitBeforeNextStep" : 5
 		}	
+	},{
+		"stepName" :	"Check",
+		"stepID" : "2",
+		"stepAction" : "check",
+		"stepOptions" : {
+			"value" : "${zipcode}",
+			"asserts" : [
+				{
+					"type" : "notContains",
+					"value" : "test zipcode"
+				},
+				{
+					"type" : "contains",
+					"value" : "77"
+				}
+			]
+		}
 	}
 	]
 }
