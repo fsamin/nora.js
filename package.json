@@ -1,6 +1,6 @@
 {
 	"name": "norajs",
-	"description": "Open Source Functional Testing tool for webservices",
+	"description": "Full-Stack JavaScript with MongoDB, Express, AngularJS, and Node.js",
 	"version": "0.0.1",
 	"author": "François SAMIN",
 	"engines": {
