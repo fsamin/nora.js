@@ -114,12 +114,20 @@
 			]
 		}
 	},{
-		"stepName" : "Test called testcase",
+		"stepName" : "Result of called testcase",
 		"stepID" : "7",
 		"stepAction" : "call",
 		"stepOptions" : {
-			"testcase" : "calledTestcase.json"
+			"testcase" : "calledTestcase.json",
+			"critical" : true
 		}
+	},{
+	  "stepName": "Wait",
+	  "stepID": "8",
+	  "stepAction": "waitNext",
+	  "stepOptions": {
+		"waitBeforeNextStep": 5
+	  }
 	}
 ]
 }
