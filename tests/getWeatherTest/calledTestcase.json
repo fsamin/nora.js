@@ -1,31 +1,47 @@
 {
-"name" : "getWeatherCalledTestCase",
-"package" : "tests",
-"teststeps":[
-	{
-		"stepName" :	"Wait",
-		"stepID" : "1",
-		"stepAction" : "waitNext",
-		"stepOptions" : {
-			"waitBeforeNextStep" : 5
-		}	
-	},{
-		"stepName" :	"Check",
-		"stepID" : "2",
-		"stepAction" : "check",
-		"stepOptions" : {
-			"value" : "${zipcode}",
-			"asserts" : [
-				{
-					"type" : "notContains",
-					"value" : "test zipcode"
-				},
-				{
-					"type" : "contains",
-					"value" : "77"
-				}
-			]
-		}
-	}
-	]
+  "name": "getWeatherCalledTestCase",
+  "package": "tests",
+  "teststeps": [
+    {
+      "stepName": "ReCheck Response Critical",
+      "stepID": "5",
+      "stepAction": "checkXML",
+      "stepOptions": {
+        "xmlID": "getWeatherResponse",
+        "asserts": [
+          {
+            "type": "contains",
+            "value": "City found"
+          }
+        ],
+        "critical": true
+      }
+    },
+    {
+      "stepName": "Wait",
+      "stepID": "1",
+      "stepAction": "waitNext",
+      "stepOptions": {
+        "waitBeforeNextStep": 5
+      }
+    },
+    {
+      "stepName": "Check",
+      "stepID": "2",
+      "stepAction": "check",
+      "stepOptions": {
+        "value": "${zipcode}",
+        "asserts": [
+          {
+            "type": "notContains",
+            "value": "test zipcode"
+          },
+          {
+            "type": "contains",
+            "value": "77"
+          }
+        ]
+      }
+    }
+  ]
 }
