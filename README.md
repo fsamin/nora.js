@@ -1,5 +1,11 @@
-#nora.js#
-
+```
+                                                      __         
+                 ____    ____ _______ _____          |__|  ______
+                /    \  /  _ \\_  __ \\__  \         |  | /  ___/
+               |   |  \(  <_> )|  | \/ / __ \_       |  | \___ \ 
+               |___|  / \____/ |__|   (____  / /\/\__|  |/____  >
+                    \/                     \/  \/\______|     \/ 
+````
 SOAP and REST Web Services Non-Regression Automation with Javascript
 
 ## Depencencies
