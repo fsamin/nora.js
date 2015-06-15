@@ -20,7 +20,7 @@ program
 
 // Used for the csv file, by row.
 var callback = function(res) {
-    if (res != null) {
+    if (res) {
         for (var i=0; i < res.length; i++){
             runTest(res[i]);
         }
